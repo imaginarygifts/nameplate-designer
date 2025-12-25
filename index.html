@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Nameplate Designer</title>
+
+<!-- Fabric.js CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f2f2f2;
+}
+
+#app {
+  display: flex;
+  height: 100vh;
+}
+
+#tools {
+  width: 260px;
+  background: #111;
+  color: #fff;
+  padding: 10px;
+  overflow-y: auto;
+}
+
+#tools h3 {
+  margin-top: 15px;
+  font-size: 14px;
+  border-bottom: 1px solid #333;
+  padding-bottom: 5px;
+}
+
+button, select {
+  width: 100%;
+  margin-top: 6px;
+  padding: 8px;
+  border: none;
+  cursor: pointer;
+}
+
+button {
+  background: #fff;
+}
+
+select {
+  background: #eee;
+}
+
+.item {
+  width: 100%;
+  background: #222;
+  color: #fff;
+  padding: 6px;
+  margin-top: 6px;
+  cursor: pointer;
+  text-align: center;
+}
+
+#canvas-wrap {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+canvas {
+  background: #fff;
+  border: 1px solid #ccc;
+}
+</style>
+</head>
+
+<body>
+
+<div id="app">
+
+  <!-- TOOL PANEL -->
+  <div id="tools">
+    <h3>TEXT</h3>
+    <button onclick="addText()">Add Text</button>
+
+    <select onchange="changeFont(this.value)">
+      <option value="">Select Font</option>
+      <option value="Playfair">Playfair</option>
+      <option value="Poppins">Poppins</option>
+    </select>
+
+    <h3>SHAPES</h3>
+    <div class="item" onclick="addSVG('assets/shapes/rectangle.svg')">Rectangle</div>
+    <div class="item" onclick="addSVG('assets/shapes/circle.svg')">Circle</div>
+
+    <h3>LOGOS</h3>
+    <div class="item" onclick="addSVG('assets/logos/om.svg')">Om</div>
+    <div class="item" onclick="addSVG('assets/logos/cross.svg')">Cross</div>
+
+    <h3>BORDERS</h3>
+    <div class="item" onclick="addSVG('assets/borders/border1.svg')">Border 1</div>
+
+    <h3>EXPORT</h3>
+    <button onclick="saveJPG()">Save as JPG</button>
+  </div>
+
+  <!-- CANVAS -->
+  <div id="canvas-wrap">
+    <canvas id="c" width="600" height="400"></canvas>
+  </div>
+
+</div>
+
+<script>
+// LOAD FONTS
+const fonts = [
+  { name: "Playfair", url: "assets/fonts/Playfair.ttf" },
+  { name: "Poppins", url: "assets/fonts/Poppins.ttf" }
+];
+
+fonts.forEach(font => {
+  const f = new FontFace(font.name, `url(${font.url})`);
+  f.load().then(function(loadedFont) {
+    document.fonts.add(loadedFont);
+  });
+});
+
+// CANVAS
+const canvas = new fabric.Canvas('c');
+
+// ADD TEXT
+function addText() {
+  const text = new fabric.Textbox('Your Name', {
+    left: 100,
+    top: 100,
+    fontSize: 32,
+    fill: '#000'
+  });
+  canvas.add(text);
+  canvas.setActiveObject(text);
+}
+
+// CHANGE FONT
+function changeFont(fontName) {
+  const obj = canvas.getActiveObject();
+  if (obj && obj.type === 'textbox') {
+    obj.set('fontFamily', fontName);
+    canvas.renderAll();
+  }
+}
+
+// ADD SVG (Shapes / Logos / Borders)
+function addSVG(path) {
+  fabric.loadSVGFromURL(path, function(objects, options) {
+    const svg = fabric.util.groupSVGElements(objects, options);
+    svg.scaleToWidth(200);
+    svg.left = 150;
+    svg.top = 100;
+    canvas.add(svg);
+    canvas.setActiveObject(svg);
+  });
+}
+
+// SAVE AS JPG
+function saveJPG() {
+  canvas.discardActiveObject();
+  canvas.renderAll();
+
+  const dataURL = canvas.toDataURL({
+    format: 'jpeg',
+    quality: 1
+  });
+
+  const link = document.createElement('a');
+  link.href = dataURL;
+  link.download = 'design.jpg';
+  link.click();
+}
+</script>
+
+</body>
+</html>
