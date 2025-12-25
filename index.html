@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <title>Nameplate Designer</title>
 
-<!-- Fabric.js CDN -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
 
 <style>
@@ -14,166 +13,234 @@ body {
   background: #f2f2f2;
 }
 
-#app {
-  display: flex;
-  height: 100vh;
-}
-
-#tools {
-  width: 260px;
-  background: #111;
-  color: #fff;
-  padding: 10px;
-  overflow-y: auto;
-}
-
-#tools h3 {
-  margin-top: 15px;
-  font-size: 14px;
-  border-bottom: 1px solid #333;
-  padding-bottom: 5px;
-}
-
-button, select {
-  width: 100%;
-  margin-top: 6px;
-  padding: 8px;
-  border: none;
-  cursor: pointer;
-}
-
-button {
-  background: #fff;
-}
-
-select {
-  background: #eee;
-}
-
-.item {
-  width: 100%;
-  background: #222;
-  color: #fff;
-  padding: 6px;
-  margin-top: 6px;
-  cursor: pointer;
-  text-align: center;
-}
-
-#canvas-wrap {
-  flex: 1;
+#canvasWrap {
   display: flex;
   justify-content: center;
-  align-items: center;
+  padding: 15px;
 }
 
 canvas {
   background: #fff;
   border: 1px solid #ccc;
 }
+
+#panel {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background: #111;
+  color: #fff;
+  padding: 10px;
+}
+
+.section {
+  margin-bottom: 10px;
+}
+
+button, select, input[type=color] {
+  width: 100%;
+  padding: 8px;
+  margin-top: 6px;
+  border: none;
+}
+
+button {
+  background: #fff;
+  cursor: pointer;
+}
+
+.colors button {
+  width: 23%;
+  margin-right: 1%;
+}
+
+.hidden {
+  display: none;
+}
 </style>
 </head>
 
 <body>
 
-<div id="app">
+<div id="canvasWrap">
+  <canvas id="c" width="600" height="350"></canvas>
+</div>
 
-  <!-- TOOL PANEL -->
-  <div id="tools">
-    <h3>TEXT</h3>
-    <button onclick="addText()">Add Text</button>
+<div id="panel">
 
-    <select onchange="changeFont(this.value)">
-      <option value="">Select Font</option>
-      <option value="Playfair">Playfair</option>
-      <option value="Poppins">Poppins</option>
-    </select>
-
-    <h3>SHAPES</h3>
-    <div class="item" onclick="addSVG('assets/shapes/rectangle.svg')">Rectangle</div>
-    <div class="item" onclick="addSVG('assets/shapes/circle.svg')">Circle</div>
-
-    <h3>LOGOS</h3>
-    <div class="item" onclick="addSVG('assets/logos/om.svg')">Om</div>
-    <div class="item" onclick="addSVG('assets/logos/cross.svg')">Cross</div>
-
-    <h3>BORDERS</h3>
-    <div class="item" onclick="addSVG('assets/borders/border1.svg')">Border 1</div>
-
-    <h3>EXPORT</h3>
-    <button onclick="saveJPG()">Save as JPG</button>
+  <!-- BACKGROUND IMAGE -->
+  <div class="section">
+    <b>Background Image</b>
+    <button onclick="setBackground('assets/backgrounds/bg1.jpg')">Background 1</button>
+    <button onclick="setBackground('assets/backgrounds/bg2.jpg')">Background 2</button>
+    <button onclick="setBackground('assets/backgrounds/bg3.jpg')">Background 3</button>
+    <button onclick="removeBackground()">Remove Background</button>
   </div>
 
-  <!-- CANVAS -->
-  <div id="canvas-wrap">
-    <canvas id="c" width="600" height="400"></canvas>
+  <!-- SHAPE -->
+  <div class="section">
+    <b>Choose Shape</b>
+    <button onclick="setShape('assets/shapes/rectangle.svg')">Rectangle</button>
+    <button onclick="setShape('assets/shapes/circle.svg')">Circle</button>
+    <button onclick="setShape('assets/shapes/square.svg')">Square</button>
+  </div>
+
+  <!-- SHAPE COLOR -->
+  <div class="section hidden" id="shapeColors">
+    <b>Shape Color</b>
+    <div class="colors">
+      <button onclick="setShapeColor('#000')">Black</button>
+      <button onclick="setShapeColor('#fff')">White</button>
+      <button onclick="setShapeColor('#7b4a12')">Brown</button>
+      <button onclick="setShapeColor('#c2a679')">Wood</button>
+    </div>
+  </div>
+
+  <!-- TOOLS -->
+  <div class="section hidden" id="tools">
+    <b>Text</b>
+    <button onclick="addText()">Add Text</button>
+    <select onchange="changeFont(this.value)">
+      <option value="">Select Font</option>
+      <option value="Coronet">Coronet</option>
+      <option value="Greshian_DEMO">Greshian_DEMO</option>
+    </select>
+    <input type="color" onchange="setTextColor(this.value)">
+
+    <b>Logo / Border</b>
+    <button onclick="addSVG('assets/logos/shivji.svg')">Add Logo</button>
+    <button onclick="addSVG('assets/borders/1.svg')">Add Border</button>
+    <input type="color" onchange="setSVGColor(this.value)">
+
+    <b>Actions</b>
+    <button onclick="deleteSelected()">Delete Selected</button>
+    <button onclick="saveJPG()">Save as JPG</button>
   </div>
 
 </div>
 
 <script>
-// LOAD FONTS
-const fonts = [
-  { name: "Playfair", url: "assets/fonts/Playfair.ttf" },
-  { name: "Poppins", url: "assets/fonts/Poppins.ttf" }
-];
-
-fonts.forEach(font => {
-  const f = new FontFace(font.name, `url(${font.url})`);
-  f.load().then(function(loadedFont) {
-    document.fonts.add(loadedFont);
-  });
+const canvas = new fabric.Canvas('c', {
+  preserveObjectStacking: true
 });
 
-// CANVAS
-const canvas = new fabric.Canvas('c');
+let baseShape = null;
 
-// ADD TEXT
-function addText() {
+/* LOAD FONTS */
+['Poppins','Playfair'].forEach(fontName=>{
+  const font = new FontFace(fontName, `url(assets/fonts/${fontName}.ttf)`);
+  font.load().then(f => document.fonts.add(f));
+});
+
+/* BACKGROUND IMAGE */
+function setBackground(path){
+  fabric.Image.fromURL(path, img=>{
+    img.scaleToWidth(canvas.width);
+    img.scaleToHeight(canvas.height);
+    canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas));
+  });
+}
+
+function removeBackground(){
+  canvas.setBackgroundImage(null, canvas.renderAll.bind(canvas));
+}
+
+/* SET BASE SHAPE */
+function setShape(path){
+  if(baseShape) canvas.remove(baseShape);
+
+  fabric.loadSVGFromURL(path, (objects, options)=>{
+    baseShape = fabric.util.groupSVGElements(objects, options);
+    baseShape.scaleToWidth(500);
+    baseShape.left = 50;
+    baseShape.top = 50;
+    baseShape.selectable = false;
+    baseShape.evented = false;
+
+    canvas.add(baseShape);
+    canvas.sendToBack(baseShape);
+    canvas.renderAll();
+
+    document.getElementById('shapeColors').classList.remove('hidden');
+    document.getElementById('tools').classList.remove('hidden');
+  });
+}
+
+/* SHAPE COLOR */
+function setShapeColor(color){
+  if(!baseShape) return;
+  baseShape.getObjects().forEach(obj=>{
+    if(obj.fill) obj.set('fill', color);
+  });
+  canvas.renderAll();
+}
+
+/* ADD TEXT */
+function addText(){
   const text = new fabric.Textbox('Your Name', {
-    left: 100,
-    top: 100,
+    left: 180,
+    top: 150,
     fontSize: 32,
     fill: '#000'
   });
-  canvas.add(text);
-  canvas.setActiveObject(text);
+  canvas.add(text).setActiveObject(text);
 }
 
-// CHANGE FONT
-function changeFont(fontName) {
+/* FONT CHANGE */
+function changeFont(font){
   const obj = canvas.getActiveObject();
-  if (obj && obj.type === 'textbox') {
-    obj.set('fontFamily', fontName);
+  if(obj && obj.type==='textbox'){
+    obj.set('fontFamily', font);
     canvas.renderAll();
   }
 }
 
-// ADD SVG (Shapes / Logos / Borders)
-function addSVG(path) {
-  fabric.loadSVGFromURL(path, function(objects, options) {
-    const svg = fabric.util.groupSVGElements(objects, options);
-    svg.scaleToWidth(200);
-    svg.left = 150;
-    svg.top = 100;
-    canvas.add(svg);
-    canvas.setActiveObject(svg);
+/* TEXT COLOR */
+function setTextColor(color){
+  const obj = canvas.getActiveObject();
+  if(obj && obj.type==='textbox'){
+    obj.set('fill', color);
+    canvas.renderAll();
+  }
+}
+
+/* ADD SVG */
+function addSVG(path){
+  fabric.loadSVGFromURL(path,(objects,options)=>{
+    const el = fabric.util.groupSVGElements(objects,options);
+    el.scaleToWidth(100);
+    el.left = 250;
+    el.top = 120;
+    canvas.add(el).setActiveObject(el);
   });
 }
 
-// SAVE AS JPG
-function saveJPG() {
+/* SVG COLOR */
+function setSVGColor(color){
+  const obj = canvas.getActiveObject();
+  if(obj && obj.type==='group'){
+    obj.getObjects().forEach(o=>{
+      if(o.fill) o.set('fill', color);
+    });
+    canvas.renderAll();
+  }
+}
+
+/* DELETE */
+function deleteSelected(){
+  const obj = canvas.getActiveObject();
+  if(obj && obj !== baseShape){
+    canvas.remove(obj);
+  }
+}
+
+/* SAVE JPG */
+function saveJPG(){
   canvas.discardActiveObject();
   canvas.renderAll();
-
-  const dataURL = canvas.toDataURL({
-    format: 'jpeg',
-    quality: 1
-  });
-
   const link = document.createElement('a');
-  link.href = dataURL;
-  link.download = 'design.jpg';
+  link.download = 'nameplate.jpg';
+  link.href = canvas.toDataURL({format:'jpeg', quality:1});
   link.click();
 }
 </script>
