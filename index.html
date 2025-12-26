@@ -2,12 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Nameplate Designer</title>
+<title>Custom Canvas Designer</title>
 
-<!-- Fabric.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
-
-<!-- Google Font -->
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 
 <style>
@@ -17,221 +13,190 @@ body{
   background:#f2f2f2;
 }
 
-/* Canvas */
+#controls{
+  background:#fff;
+  padding:10px;
+  display:flex;
+  gap:10px;
+  justify-content:center;
+  flex-wrap:wrap;
+}
+
 #canvasWrap{
-  padding:15px;
   display:flex;
   justify-content:center;
+  margin:15px;
 }
 
 canvas{
   background:#fff;
-  border-radius:10px;
-  box-shadow:0 0 10px rgba(0,0,0,.2);
-}
-
-/* Top bar */
-#top{
-  display:flex;
-  gap:10px;
-  padding:10px;
-  background:#fff;
-  justify-content:center;
-}
-
-/* Bottom toolbar */
-#toolbar{
-  position:fixed;
-  bottom:0;
-  left:0;
-  right:0;
-  background:#111;
-  display:flex;
-}
-
-#toolbar button{
-  flex:1;
-  padding:14px;
-  color:#fff;
-  background:none;
-  border:none;
-  font-size:14px;
-}
-
-/* Popup */
-.popup{
-  display:none;
-  position:fixed;
-  bottom:70px;
-  left:10px;
-  right:10px;
-  background:#fff;
-  padding:10px;
-  border-radius:10px;
-}
-
-.popup button, .popup input{
-  width:100%;
-  padding:10px;
-  margin:5px 0;
+  border:2px solid #333;
 }
 </style>
 </head>
 
 <body>
 
-<div id="top">
-  <button onclick="exportJPG()">Save as JPG</button>
-  <button onclick="deleteSelected()">Delete Selected</button>
+<div id="controls">
+  <button onclick="addRect()">Add Shape</button>
+  <button onclick="addText()">Add Text</button>
+  <button onclick="addImage()">Add Logo</button>
+  <button onclick="rotateSelected()">Rotate</button>
+  <button onclick="deleteSelected()">Delete</button>
+  <button onclick="exportJPG()">Save JPG</button>
 </div>
 
 <div id="canvasWrap">
-  <canvas id="c" width="900" height="400"></canvas>
-</div>
-
-<!-- POPUPS -->
-<div id="shapePopup" class="popup">
-  <button onclick="addRect()">Rectangle</button>
-  <button onclick="addCircle()">Circle</button>
-</div>
-
-<div id="textPopup" class="popup">
-  <input id="textInput" placeholder="Enter name">
-  <button onclick="addText()">Add Text</button>
-</div>
-
-<div id="logoPopup" class="popup">
-  <button onclick="addImage('https://upload.wikimedia.org/wikipedia/commons/1/17/Om_symbol.svg')">Om</button>
-  <button onclick="addImage('https://upload.wikimedia.org/wikipedia/commons/4/42/Christian_cross.svg')">Cross</button>
-</div>
-
-<div id="bgPopup" class="popup">
-  <button onclick="setBackground('https://images.unsplash.com/photo-1523413651479-597eb2da0ad6')">Wood</button>
-  <button onclick="setBackground('https://images.unsplash.com/photo-1501594907352-04cda38ebc29')">Dark</button>
-  <button onclick="removeBackground()">Remove Background</button>
-</div>
-
-<div id="colorPopup" class="popup">
-  <input type="color" onchange="changeColor(this.value)">
-</div>
-
-<!-- BOTTOM TOOLBAR -->
-<div id="toolbar">
-  <button onclick="toggle('shapePopup')">Shape</button>
-  <button onclick="toggle('textPopup')">Text</button>
-  <button onclick="toggle('logoPopup')">Logo</button>
-  <button onclick="toggle('bgPopup')">Background</button>
-  <button onclick="toggle('colorPopup')">Color</button>
+  <canvas id="canvas" width="800" height="400"></canvas>
 </div>
 
 <script>
-const canvas = new fabric.Canvas('c', {
-  preserveObjectStacking:true
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+let objects = [];
+let selected = null;
+let dragging = false;
+let offsetX = 0;
+let offsetY = 0;
+
+/* ---------- DRAW ---------- */
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  objects.forEach(o=>{
+    ctx.save();
+
+    // move to center for rotation
+    ctx.translate(o.x + o.w/2, o.y + o.h/2);
+    ctx.rotate(o.rotation);
+    ctx.translate(-o.w/2, -o.h/2);
+
+    // draw object
+    if(o.type === "rect"){
+      ctx.fillStyle = o.color;
+      ctx.fillRect(0,0,o.w,o.h);
+    }
+
+    if(o.type === "text"){
+      ctx.fillStyle = o.color;
+      ctx.font = `${o.size}px Poppins`;
+      ctx.fillText(o.text, 0, o.size);
+    }
+
+    if(o.type === "img"){
+      ctx.drawImage(o.img,0,0,o.w,o.h);
+    }
+
+    // selection outline
+    if(o === selected){
+      ctx.strokeStyle = "blue";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(0,0,o.w,o.h);
+    }
+
+    ctx.restore();
+  });
+}
+
+/* ---------- ADD OBJECTS ---------- */
+function addRect(){
+  objects.push({
+    type:"rect",
+    x:200,y:150,
+    w:300,h:100,
+    color:"#000",
+    rotation:0
+  });
+  draw();
+}
+
+function addText(){
+  const txt = prompt("Enter text","Your Name");
+  if(!txt) return;
+
+  objects.push({
+    type:"text",
+    text:txt,
+    x:260,y:200,
+    w:200,h:50,
+    size:36,
+    color:"#000",
+    rotation:0
+  });
+  draw();
+}
+
+function addImage(){
+  const img = new Image();
+  img.crossOrigin = "anonymous";
+  img.src = "https://upload.wikimedia.org/wikipedia/commons/1/17/Om_symbol.svg";
+  img.onload = ()=>{
+    objects.push({
+      type:"img",
+      img:img,
+      x:350,y:150,
+      w:80,h:80,
+      rotation:0
+    });
+    draw();
+  };
+}
+
+/* ---------- MOUSE INTERACTION ---------- */
+canvas.addEventListener("mousedown", (e)=>{
+  const mx = e.offsetX;
+  const my = e.offsetY;
+  selected = null;
+
+  for(let i = objects.length - 1; i >= 0; i--){
+    const o = objects[i];
+    if(mx > o.x && mx < o.x + o.w && my > o.y && my < o.y + o.h){
+      selected = o;
+      dragging = true;
+      offsetX = mx - o.x;
+      offsetY = my - o.y;
+      break;
+    }
+  }
+  draw();
 });
 
-/* Popup toggle */
-function toggle(id){
-  document.querySelectorAll('.popup').forEach(p=>p.style.display='none');
-  document.getElementById(id).style.display='block';
-}
+canvas.addEventListener("mousemove", (e)=>{
+  if(!dragging || !selected) return;
+  selected.x = e.offsetX - offsetX;
+  selected.y = e.offsetY - offsetY;
+  draw();
+});
 
-/* Shapes */
-function addRect(){
-  const rect = new fabric.Rect({
-    left:200,
-    top:120,
-    width:300,
-    height:120,
-    rx:15,
-    fill:'#000'
-  });
-  canvas.add(rect);
-  canvas.setActiveObject(rect);
-}
+canvas.addEventListener("mouseup", ()=>{
+  dragging = false;
+});
 
-function addCircle(){
-  const circle = new fabric.Circle({
-    left:250,
-    top:100,
-    radius:80,
-    fill:'#000'
-  });
-  canvas.add(circle);
-  canvas.setActiveObject(circle);
-}
-
-/* Text */
-function addText(){
-  const val = document.getElementById('textInput').value || 'Your Name';
-  const text = new fabric.Textbox(val,{
-    left:250,
-    top:150,
-    fontSize:40,
-    fill:'#fff',
-    fontFamily:'Poppins'
-  });
-  canvas.add(text);
-  canvas.setActiveObject(text);
-}
-
-/* Images (logos / borders) */
-function addImage(url){
-  fabric.Image.fromURL(url, img=>{
-    img.set({
-      left:300,
-      top:150,
-      scaleX:0.2,
-      scaleY:0.2,
-      crossOrigin:'anonymous'
-    });
-    canvas.add(img);
-    canvas.setActiveObject(img);
-  });
-}
-
-/* Color change */
-function changeColor(color){
-  const obj = canvas.getActiveObject();
-  if(!obj) return;
-  if(obj.type === 'textbox'){
-    obj.set('fill',color);
-  }else{
-    obj.set('fill',color);
+/* ---------- ACTIONS ---------- */
+function rotateSelected(){
+  if(selected){
+    selected.rotation += Math.PI / 12;
+    draw();
   }
-  canvas.renderAll();
 }
 
-/* Background */
-function setBackground(url){
-  fabric.Image.fromURL(url, img=>{
-    img.scaleToWidth(canvas.width);
-    canvas.setBackgroundImage(img,canvas.renderAll.bind(canvas),{
-      crossOrigin:'anonymous'
-    });
-  });
-}
-
-function removeBackground(){
-  canvas.setBackgroundImage(null,canvas.renderAll.bind(canvas));
-}
-
-/* Delete */
 function deleteSelected(){
-  const obj = canvas.getActiveObject();
-  if(obj) canvas.remove(obj);
+  if(!selected) return;
+  objects = objects.filter(o => o !== selected);
+  selected = null;
+  draw();
 }
 
-/* Export */
 function exportJPG(){
-  const link=document.createElement('a');
-  link.download='nameplate.jpg';
-  link.href=canvas.toDataURL({
-    format:'jpeg',
-    quality:1,
-    multiplier:2
-  });
+  const link = document.createElement("a");
+  link.download = "design.jpg";
+  link.href = canvas.toDataURL("image/jpeg",1);
   link.click();
 }
+
+/* Initial draw */
+draw();
 </script>
 
 </body>
