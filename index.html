@@ -1,24 +1,27 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>Nameplate Designer</title>
+<title>Nameplate Designer – Stable Core</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins&family=Montserrat&family=Playfair+Display&family=Libre+Baskerville&family=Lora&family=Cinzel&family=Great+Vibes&family=Dancing+Script&family=Allura&family=Alex+Brush&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins&family=Montserrat&family=Playfair+Display&family=Great+Vibes&family=Dancing+Script&display=swap" rel="stylesheet">
 
 <style>
-body{margin:0;font-family:Poppins;background:#f2f2f2;}
+body{margin:0;font-family:Poppins;background:#eee;}
 #controls{
   background:#fff;padding:10px;
   display:flex;gap:10px;flex-wrap:wrap;
-  justify-content:center;align-items:center;
+  justify-content:center;
 }
 select,button{padding:6px 10px;font-size:14px;}
-.icon-btn{font-size:18px;border:1px solid #ccc;border-radius:6px;background:#fff;}
+#colors{display:none;background:#fff;padding:8px;margin:auto;width:max-content}
+.color{
+  width:22px;height:22px;border-radius:50%;
+  display:inline-block;margin:4px;border:1px solid #333;cursor:pointer;
+}
 canvas{
-  background:#fff;border:2px solid #333;
+  background:#fff;border:2px solid #000;
   display:block;margin:15px auto;
-  touch-action:none;
 }
 </style>
 </head>
@@ -30,235 +33,201 @@ canvas{
     <option value="">Shape</option>
     <option value="rect">Rectangle</option>
     <option value="rounded">Rounded</option>
-    <option value="pill">Pill</option>
     <option value="circle">Circle</option>
     <option value="oval">Oval</option>
-    <option value="arch">Arch</option>
+    <option value="pill">Pill</option>
     <option value="diamond">Diamond</option>
     <option value="hexagon">Hexagon</option>
-    <option value="shield">Shield</option>
-    <option value="vertical">Vertical</option>
   </select>
 
-  <select onchange="addLogo(this.value)">
-    <option value="">Add Logo</option>
-    <option value="om">Om</option>
-    <option value="cross">Cross</option>
-    <option value="ganesha">Ganesha</option>
-    <option value="trishul">Trishul</option>
-    <option value="krishna">Krishna</option>
-    <option value="buddha">Buddha</option>
-    <option value="swastik">Swastik</option>
-    <option value="house">House</option>
-  </select>
+  <button onclick="addText()">Add Text</button>
 
   <select onchange="changeFont(this.value)">
     <option value="">Font</option>
     <option>Poppins</option>
     <option>Montserrat</option>
     <option>Playfair Display</option>
-    <option>Libre Baskerville</option>
-    <option>Lora</option>
-    <option>Cinzel</option>
     <option>Great Vibes</option>
     <option>Dancing Script</option>
-    <option>Allura</option>
-    <option>Alex Brush</option>
   </select>
-
-  <button onclick="addText()">Add Text</button>
-  <button class="icon-btn" onclick="undo()">⟲</button>
-  <button class="icon-btn" onclick="redo()">⟳</button>
-  <button onclick="exportJPG()">Save JPG</button>
 </div>
+
+<div id="colors"></div>
 
 <canvas id="canvas" width="900" height="450"></canvas>
 
 <script>
-const canvas=document.getElementById("canvas");
-const ctx=canvas.getContext("2d");
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+const colorsDiv = document.getElementById("colors");
 
-let objects=[],selected=null;
-let action=null,sx=0,sy=0,startAngle=0;
-let undoStack=[],redoStack=[];
+let objects = [];
+let selected = null;
+let dragging = false;
+let resizing = false;
+let sx=0, sy=0;
 
-const ICON_R=10;
-const HANDLE_OFFSET=18;
+const COLORS = ["#000","#fff","#5a3a22","#f7f4e9","#e74c3c","#3498db","#2ecc71"];
 
-const LOGOS={
-  om:"https://www.svgrepo.com/show/475656/om.svg",
-  cross:"https://www.svgrepo.com/show/475662/cross.svg",
-  ganesha:"https://www.svgrepo.com/show/475655/ganesha.svg",
-  trishul:"https://www.svgrepo.com/show/475661/trishul.svg",
-  krishna:"https://www.svgrepo.com/show/475658/flute.svg",
-  buddha:"https://www.svgrepo.com/show/475653/buddha.svg",
-  swastik:"https://www.svgrepo.com/show/475659/swastika.svg",
-  house:"https://www.svgrepo.com/show/475651/home.svg"
-};
-
-function saveState(){undoStack.push(JSON.stringify(objects));redoStack=[];}
-function undo(){if(!undoStack.length)return;redoStack.push(JSON.stringify(objects));objects=JSON.parse(undoStack.pop());selected=null;draw();}
-function redo(){if(!redoStack.length)return;undoStack.push(JSON.stringify(objects));objects=JSON.parse(redoStack.pop());selected=null;draw();}
-
-function getPos(e){
- const r=canvas.getBoundingClientRect();
- const t=e.touches?e.touches[0]:e;
- return {x:(t.clientX-r.left)*(canvas.width/r.width),
-         y:(t.clientY-r.top)*(canvas.height/r.height)};
-}
-
+/* ---------------- DRAW ---------------- */
 function draw(){
- ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
 
- objects.forEach(o=>{
-  ctx.save();
-  ctx.translate(o.x+o.w/2,o.y+o.h/2);
-  ctx.rotate(o.rotation);
-  ctx.translate(-o.w/2,-o.h/2);
+  objects.forEach(o=>{
+    ctx.save();
+    ctx.translate(o.x,o.y);
 
-  if(o.type==="shape"){drawShape(o);}
-  if(o.type==="text"){
-    ctx.font=`${o.fontSize}px ${o.font}`;
-    ctx.textAlign="center";
-    ctx.textBaseline="middle";
-    ctx.fillText(o.text,o.w/2,o.h/2);
-  }
-  if(o.type==="logo"){
-    ctx.drawImage(o.img,0,0,o.w,o.h);
-  }
+    ctx.fillStyle = o.color;
 
-  if(o===selected){
-    drawHandles(o);
-  }
-  ctx.restore();
- });
+    if(o.type==="shape") drawShape(o);
+    if(o.type==="text"){
+      ctx.font = `${o.size}px ${o.font}`;
+      ctx.textBaseline="top";
+      ctx.fillText(o.text,0,0);
+      o.w = ctx.measureText(o.text).width;
+      o.h = o.size;
+    }
+
+    if(o===selected){
+      ctx.strokeStyle="#1e90ff";
+      ctx.strokeRect(0,0,o.w,o.h);
+      ctx.fillRect(o.w-8,o.h-8,8,8); // resize handle
+    }
+
+    ctx.restore();
+  });
 }
 
-function drawHandles(o){
- ctx.strokeStyle="#1e90ff";
- ctx.setLineDash([6,4]);
- ctx.strokeRect(0,0,o.w,o.h);
- ctx.setLineDash([]);
-
- drawHandle(-HANDLE_OFFSET,-HANDLE_OFFSET,"×");
- drawHandle(o.w+HANDLE_OFFSET,-HANDLE_OFFSET,"↻");
- drawHandle(o.w+HANDLE_OFFSET,o.h+HANDLE_OFFSET,"↔");
-}
-
-function drawHandle(x,y,t){
- ctx.beginPath();
- ctx.arc(x,y,ICON_R,0,Math.PI*2);
- ctx.fillStyle="#fff";ctx.fill();ctx.stroke();
- ctx.fillStyle="#333";
- ctx.fillText(t,x-4,y+4);
-}
-
-function hitHandle(px,py,hx,hy){
- return Math.hypot(px-hx,py-hy)<=ICON_R;
-}
-
-function pointerDown(e){
- e.preventDefault();
- const p=getPos(e);
- selected=null;action=null;
-
- for(let i=objects.length-1;i>=0;i--){
-  const o=objects[i];
-  const cx=o.x+o.w/2, cy=o.y+o.h/2;
-  const dx=p.x-cx, dy=p.y-cy;
-  const rx=Math.cos(-o.rotation)*dx-Math.sin(-o.rotation)*dy+o.w/2;
-  const ry=Math.sin(-o.rotation)*dx+Math.cos(-o.rotation)*dy+o.h/2;
-
-  if(hitHandle(rx,ry,-HANDLE_OFFSET,-HANDLE_OFFSET)){saveState();objects.splice(i,1);draw();return;}
-  if(hitHandle(rx,ry,o.w+HANDLE_OFFSET,-HANDLE_OFFSET)){selected=o;action="rotate";}
-  else if(hitHandle(rx,ry,o.w+HANDLE_OFFSET,o.h+HANDLE_OFFSET)){selected=o;action="resize";}
-  else if(rx>0&&rx<o.w&&ry>0&&ry<o.h){selected=o;action="move";}
-
-  if(action){
-    sx=p.x;sy=p.y;
-    startAngle=Math.atan2(p.y-cy,p.x-cx)-o.rotation;
-    draw();return;
-  }
- }
- draw();
-}
-
-function pointerMove(e){
- if(!selected)return;
- e.preventDefault();
- const p=getPos(e);
-
- if(action==="move"){selected.x+=p.x-sx;selected.y+=p.y-sy;}
- if(action==="resize"){selected.w+=p.x-sx;selected.h+=p.y-sy;}
- if(action==="rotate"){
-  const cx=selected.x+selected.w/2;
-  const cy=selected.y+selected.h/2;
-  selected.rotation=Math.atan2(p.y-cy,p.x-cx)-startAngle;
- }
- sx=p.x;sy=p.y;
- draw();
-}
-
-function pointerUp(){if(action)saveState();action=null;}
-
-canvas.addEventListener("mousedown",pointerDown);
-canvas.addEventListener("mousemove",pointerMove);
-canvas.addEventListener("mouseup",pointerUp);
-canvas.addEventListener("touchstart",pointerDown,{passive:false});
-canvas.addEventListener("touchmove",pointerMove,{passive:false});
-canvas.addEventListener("touchend",pointerUp);
-
-/* SHAPES */
+/* ---------------- SHAPES ---------------- */
 function drawShape(o){
- ctx.fillRect(0,0,o.w,o.h);
+  ctx.beginPath();
+  const w=o.w,h=o.h;
+  if(o.shape==="rect") ctx.rect(0,0,w,h);
+  if(o.shape==="rounded") roundRect(0,0,w,h,20);
+  if(o.shape==="circle") ctx.arc(w/2,h/2,w/2,0,Math.PI*2);
+  if(o.shape==="oval") ctx.ellipse(w/2,h/2,w/2,h/2,0,0,Math.PI*2);
+  if(o.shape==="pill") roundRect(0,0,w,h,h/2);
+  if(o.shape==="diamond"){
+    ctx.moveTo(w/2,0);ctx.lineTo(w,h/2);
+    ctx.lineTo(w/2,h);ctx.lineTo(0,h/2);ctx.closePath();
+  }
+  if(o.shape==="hexagon"){
+    for(let i=0;i<6;i++){
+      const a=Math.PI/3*i;
+      ctx.lineTo(w/2+w/2*Math.cos(a),h/2+h/2*Math.sin(a));
+    }
+    ctx.closePath();
+  }
+  ctx.fill();
 }
 
+function roundRect(x,y,w,h,r){
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+}
+
+/* ---------------- ADD ---------------- */
 function addShape(s){
- if(!s)return;
- saveState();
- objects=objects.filter(o=>o.type!=="shape");
- objects.unshift({type:"shape",x:250,y:150,w:350,h:150,rotation:0});
- selected=objects[0];draw();
+  if(!s) return;
+  objects = objects.filter(o=>o.type!=="shape");
+  selected = {
+    type:"shape",shape:s,
+    x:250,y:150,w:350,h:150,
+    color:"#000"
+  };
+  objects.unshift(selected);
+  showColors();
+  draw();
 }
 
 function addText(){
- const t=prompt("Text","Your Name");
- if(!t)return;
- saveState();
- ctx.font="40px Poppins";
- const w=ctx.measureText(t).width+30;
- objects.push({type:"text",text:t,x:450-w/2,y:220,w,h:70,fontSize:40,font:"Poppins",rotation:0});
- selected=objects.at(-1);draw();
-}
-
-function addLogo(l){
- if(!l)return;
- const img=new Image();
- img.crossOrigin="anonymous";
- img.onload=()=>{
-  saveState();
-  objects.push({type:"logo",img,x:430,y:180,w:80,h:80,rotation:0});
-  selected=objects.at(-1);draw();
- };
- img.src=LOGOS[l];
+  const t = prompt("Text","Your Name");
+  if(!t) return;
+  selected = {
+    type:"text",text:t,
+    x:300,y:200,
+    size:40,font:"Poppins",
+    color:"#000",w:0,h:0
+  };
+  objects.push(selected);
+  showColors();
+  draw();
 }
 
 function changeFont(f){
- if(selected&&selected.type==="text"){
-  saveState();
-  selected.font=f;
-  ctx.font=`${selected.fontSize}px ${f}`;
-  selected.w=ctx.measureText(selected.text).width+30;
-  draw();
- }
+  if(selected && selected.type==="text"){
+    selected.font = f;
+    draw();
+  }
 }
 
-function exportJPG(){
- const a=document.createElement("a");
- a.download="design.jpg";
- a.href=canvas.toDataURL("image/jpeg",1);
- a.click();
+/* ---------------- COLORS ---------------- */
+function showColors(){
+  colorsDiv.innerHTML="";
+  COLORS.forEach(c=>{
+    const d=document.createElement("div");
+    d.className="color";
+    d.style.background=c;
+    d.onclick=()=>{selected.color=c;draw();};
+    colorsDiv.appendChild(d);
+  });
+  colorsDiv.style.display="block";
 }
+
+/* ---------------- EVENTS ---------------- */
+canvas.onmousedown = e=>{
+  const r = canvas.getBoundingClientRect();
+  const mx = e.clientX-r.left;
+  const my = e.clientY-r.top;
+  selected = null;
+
+  for(let i=objects.length-1;i>=0;i--){
+    const o=objects[i];
+    if(mx>o.x && mx<o.x+o.w && my>o.y && my<o.y+o.h){
+      selected=o;
+      sx=mx; sy=my;
+      resizing = (mx>o.x+o.w-8 && my>o.y+o.h-8);
+      dragging = !resizing;
+      showColors();
+      break;
+    }
+  }
+  draw();
+};
+
+canvas.onmousemove = e=>{
+  if(!selected) return;
+  const r = canvas.getBoundingClientRect();
+  const mx = e.clientX-r.left;
+  const my = e.clientY-r.top;
+
+  if(dragging){
+    selected.x += mx-sx;
+    selected.y += my-sy;
+  }
+  if(resizing){
+    const dw = mx-sx;
+    const dh = my-sy;
+    if(selected.type==="shape"){
+      selected.w += dw;
+      selected.h += dh;
+    }
+    if(selected.type==="text"){
+      selected.size += dh*0.5;
+      if(selected.size<10) selected.size=10;
+    }
+  }
+  sx=mx; sy=my;
+  draw();
+};
+
+canvas.onmouseup = ()=>{
+  dragging=false;
+  resizing=false;
+};
 
 draw();
 </script>
