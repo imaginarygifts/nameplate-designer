@@ -7,16 +7,35 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins&family=Great+Vibes&family=Playfair+Display&family=Cormorant&family=Dancing+Script&family=Montserrat&family=Cinzel&family=Libre+Baskerville&family=Lora&family=Abril+Fatface&display=swap" rel="stylesheet">
 
 <style>
-body{margin:0;font-family:Poppins;background:#f2f2f2;}
+body{
+  margin:0;
+  font-family:Poppins,sans-serif;
+  background:#f2f2f2;
+}
+
 #controls{
   background:#fff;
   padding:10px;
   display:flex;
   gap:10px;
   justify-content:center;
+  align-items:center;
   flex-wrap:wrap;
 }
-select,button{padding:6px 10px;font-size:14px;}
+
+select,button{
+  padding:6px 10px;
+  font-size:14px;
+  cursor:pointer;
+}
+
+.icon-btn{
+  font-size:18px;
+  background:#fff;
+  border:1px solid #ccc;
+  border-radius:6px;
+}
+
 #colorPanel{
   display:none;
   background:#fff;
@@ -25,11 +44,17 @@ select,button{padding:6px 10px;font-size:14px;}
   width:fit-content;
   border-radius:6px;
 }
+
 .color-swatch{
-  width:24px;height:24px;border-radius:50%;
-  display:inline-block;margin:4px;
-  border:1px solid #aaa;cursor:pointer;
+  width:24px;
+  height:24px;
+  border-radius:50%;
+  display:inline-block;
+  margin:4px;
+  border:1px solid #aaa;
+  cursor:pointer;
 }
+
 canvas{
   background:#fff;
   border:2px solid #333;
@@ -58,17 +83,25 @@ canvas{
 
   <select onchange="changeFont(this.value)">
     <option value="">Select Font</option>
-    <option>Poppins</option><option>Great Vibes</option>
-    <option>Playfair Display</option><option>Cormorant</option>
-    <option>Dancing Script</option><option>Montserrat</option>
-    <option>Cinzel</option><option>Libre Baskerville</option>
-    <option>Lora</option><option>Abril Fatface</option>
+    <option>Poppins</option>
+    <option>Great Vibes</option>
+    <option>Playfair Display</option>
+    <option>Cormorant</option>
+    <option>Dancing Script</option>
+    <option>Montserrat</option>
+    <option>Cinzel</option>
+    <option>Libre Baskerville</option>
+    <option>Lora</option>
+    <option>Abril Fatface</option>
   </select>
 
   <button onclick="addText()">Add Text</button>
-  <button id="colorBtn" onclick="toggleColorPanel()" style="display:none;">Select Color</button>
-  <button onclick="undo()">Undo</button>
-  <button onclick="redo()">Redo</button>
+
+  <!-- ICON UNDO REDO -->
+  <button class="icon-btn" title="Undo" onclick="undo()">⟲</button>
+  <button class="icon-btn" title="Redo" onclick="redo()">⟳</button>
+
+  <button id="colorBtn" onclick="toggleColorPanel()" style="display:none;">🎨 Color</button>
   <button onclick="exportJPG()">Save JPG</button>
 </div>
 
@@ -76,20 +109,21 @@ canvas{
 <canvas id="canvas" width="800" height="400"></canvas>
 
 <script>
-const canvas=document.getElementById("canvas");
-const ctx=canvas.getContext("2d");
-const colorPanel=document.getElementById("colorPanel");
-const colorBtn=document.getElementById("colorBtn");
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+const colorPanel = document.getElementById("colorPanel");
+const colorBtn = document.getElementById("colorBtn");
 
 let objects=[], selected=null;
 let action=null, sx=0, sy=0, startAngle=0;
 
 let undoStack=[], redoStack=[];
 
-const ICON_R=10, ICON_OFFSET=18;
+const ICON_R = 10;
+const ICON_OFFSET = 18;
 
-const COLORS={
-  black:"#000", white:"#fff", brown:"#5a3a22", ivory:"#f7f4e9",
+const COLORS = {
+  black:"#000000", white:"#ffffff", brown:"#5a3a22", ivory:"#f7f4e9",
   gold:"#d4af37", silver:"#c0c0c0", rose:"#b76e79",
   yellow:"#f1c40f", red:"#e74c3c", blue:"#3498db", green:"#2ecc71"
 };
@@ -102,15 +136,17 @@ function saveState(){
 function undo(){
   if(!undoStack.length) return;
   redoStack.push(JSON.stringify(objects));
-  objects=JSON.parse(undoStack.pop());
-  selected=null; hideColor();
+  objects = JSON.parse(undoStack.pop());
+  selected=null;
+  hideColor();
   draw();
 }
 function redo(){
   if(!redoStack.length) return;
   undoStack.push(JSON.stringify(objects));
-  objects=JSON.parse(redoStack.pop());
-  selected=null; hideColor();
+  objects = JSON.parse(redoStack.pop());
+  selected=null;
+  hideColor();
   draw();
 }
 
@@ -131,11 +167,13 @@ function draw(){
       ctx.textBaseline="middle";
       ctx.fillText(o.text,o.w/2,o.h/2);
     }
+
     if(o===selected) drawOutline(o);
     ctx.restore();
   });
 }
 
+/* ---------- SHAPES ---------- */
 function drawShape(o){
   const w=o.w,h=o.h;
   ctx.beginPath();
@@ -150,12 +188,14 @@ function drawShape(o){
     for(let i=0;i<6;i++){
       const a=Math.PI/3*i;
       ctx.lineTo(w/2+(w/2)*Math.cos(a),h/2+(h/2)*Math.sin(a));
-    }ctx.closePath();
+    }
+    ctx.closePath();
   }
   if(o.shape==="shield"){ctx.moveTo(0,0);ctx.lineTo(w,0);ctx.lineTo(w,h*0.6);ctx.lineTo(w/2,h);ctx.lineTo(0,h*0.6);ctx.closePath();}
   if(o.shape==="vertical") ctx.rect(0,0,w,h);
   ctx.fill();
 }
+
 function roundRect(x,y,w,h,r){
   ctx.moveTo(x+r,y);
   ctx.arcTo(x+w,y,x+w,y+h,r);
@@ -164,22 +204,75 @@ function roundRect(x,y,w,h,r){
   ctx.arcTo(x,y,x+w,y,r);
 }
 
-/* ---------- OUTLINE ---------- */
+/* ---------- SELECTION + HANDLES ---------- */
 function drawOutline(o){
   ctx.strokeStyle="#1e90ff";
   ctx.setLineDash([6,4]);
   ctx.strokeRect(0,0,o.w,o.h);
   ctx.setLineDash([]);
+
+  drawDeleteIcon(-ICON_OFFSET,-ICON_OFFSET);
+  drawRotateIcon(o.w+ICON_OFFSET,-ICON_OFFSET);
+  drawResizeIcon(o.w+ICON_OFFSET,o.h+ICON_OFFSET);
+}
+
+function drawIconBase(x,y){
+  ctx.beginPath();
+  ctx.arc(x,y,ICON_R,0,Math.PI*2);
+  ctx.fillStyle="#fff";
+  ctx.fill();
+  ctx.strokeStyle="#666";
+  ctx.stroke();
+}
+
+function drawDeleteIcon(x,y){
+  drawIconBase(x,y);
+  ctx.strokeStyle="#333";
+  ctx.lineWidth=2;
+  ctx.beginPath();
+  ctx.moveTo(x-4,y-4); ctx.lineTo(x+4,y+4);
+  ctx.moveTo(x+4,y-4); ctx.lineTo(x-4,y+4);
+  ctx.stroke();
+}
+
+function drawRotateIcon(x,y){
+  drawIconBase(x,y);
+  ctx.strokeStyle="#333";
+  ctx.lineWidth=2;
+  ctx.beginPath();
+  ctx.arc(x,y,5,Math.PI*0.25,Math.PI*1.5);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x+3,y-6);
+  ctx.lineTo(x+7,y-6);
+  ctx.lineTo(x+7,y-2);
+  ctx.stroke();
+}
+
+function drawResizeIcon(x,y){
+  drawIconBase(x,y);
+  ctx.strokeStyle="#333";
+  ctx.lineWidth=2;
+  ctx.beginPath();
+  ctx.moveTo(x-5,y+5);
+  ctx.lineTo(x+5,y-5);
+  ctx.moveTo(x+2,y-5);
+  ctx.lineTo(x+5,y-5);
+  ctx.lineTo(x+5,y-2);
+  ctx.stroke();
 }
 
 /* ---------- ADD ---------- */
 function addShape(shape){
   if(!shape) return;
   saveState();
-  objects=objects.filter(o=>o.type!=="shape");
+  objects = objects.filter(o=>o.type!=="shape");
   objects.unshift({type:"shape",shape,x:250,y:130,w:300,h:140,color:"#000",rotation:0});
-  selected=objects[0]; showColor(); draw();
+  selected=objects[0];
+  showColor();
+  draw();
 }
+
 function addText(){
   const t=prompt("Enter text","Your Name");
   if(!t) return;
@@ -187,12 +280,15 @@ function addText(){
   ctx.font="36px Poppins";
   const w=ctx.measureText(t).width+30;
   objects.push({type:"text",text:t,x:400-w/2,y:200-30,w,h:60,fontSize:36,font:"Poppins",color:"#fff",rotation:0});
-  selected=objects.at(-1); showColor(); draw();
+  selected=objects.at(-1);
+  showColor();
+  draw();
 }
 
 /* ---------- COLOR ---------- */
-function showColor(){colorBtn.style.display="inline-block";}
-function hideColor(){colorBtn.style.display="none";colorPanel.style.display="none";}
+function showColor(){ colorBtn.style.display="inline-block"; }
+function hideColor(){ colorBtn.style.display="none"; colorPanel.style.display="none"; }
+
 function toggleColorPanel(){
   colorPanel.innerHTML="";
   Object.values(COLORS).forEach(c=>{
@@ -221,35 +317,77 @@ function changeFont(f){
   }
 }
 
-/* ---------- INTERACTION ---------- */
+/* ---------- HIT TEST ---------- */
+function dist(x1,y1,x2,y2){ return Math.hypot(x1-x2,y1-y2); }
+
+function hit(mx,my,o){
+  if(dist(mx,my,o.x-ICON_OFFSET,o.y-ICON_OFFSET)<ICON_R) return "delete";
+  if(dist(mx,my,o.x+o.w+ICON_OFFSET,o.y-ICON_OFFSET)<ICON_R) return "rotate";
+  if(dist(mx,my,o.x+o.w+ICON_OFFSET,o.y+o.h+ICON_OFFSET)<ICON_R) return "resize";
+  if(mx>o.x&&mx<o.x+o.w&&my>o.y&&my<o.y+o.h) return "move";
+  return null;
+}
+
+/* ---------- EVENTS ---------- */
 canvas.addEventListener("mousedown",e=>{
   const mx=e.offsetX,my=e.offsetY;
-  selected=null; hideColor();
+  selected=null; action=null; hideColor();
+
   for(let i=objects.length-1;i>=0;i--){
     const o=objects[i];
-    if(mx>o.x&&mx<o.x+o.w&&my>o.y&&my<o.y+o.h){
+    const h=hit(mx,my,o);
+    if(h){
       selected=o;
-      sx=mx-o.x; sy=my-o.y;
+      action=h;
+      sx=mx; sy=my;
+      startAngle=Math.atan2(my-(o.y+o.h/2),mx-(o.x+o.w/2))-o.rotation;
+      if(h==="delete"){
+        saveState();
+        objects=objects.filter(x=>x!==o);
+        selected=null;
+      }
       showColor();
       break;
     }
   }
   draw();
 });
+
 canvas.addEventListener("mousemove",e=>{
-  if(selected && e.buttons){
-    selected.x=e.offsetX-sx;
-    selected.y=e.offsetY-sy;
-    draw();
+  if(!selected) return;
+  const mx=e.offsetX,my=e.offsetY;
+
+  if(action==="move"){
+    selected.x+=mx-sx; selected.y+=my-sy;
+    sx=mx; sy=my;
   }
+  if(action==="resize"){
+    selected.w+=mx-sx; selected.h+=my-sy;
+    if(selected.type==="text"){
+      selected.fontSize=Math.max(14,selected.h*0.6);
+    }
+    sx=mx; sy=my;
+  }
+  if(action==="rotate"){
+    selected.rotation=Math.atan2(my-(selected.y+selected.h/2),mx-(selected.x+selected.w/2))-startAngle;
+  }
+  draw();
 });
-canvas.addEventListener("mouseup",()=>saveState());
+
+canvas.addEventListener("mouseup",()=>{
+  if(action) saveState();
+  action=null;
+});
 
 canvas.addEventListener("dblclick",()=>{
   if(selected && selected.type==="text"){
     saveState();
     const t=prompt("Edit text",selected.text);
-    if(t){selected.text=t;ctx.font=`${selected.fontSize}px ${selected.font}`;selected.w=ctx.measureText(t).width+30;}
+    if(t){
+      selected.text=t;
+      ctx.font=`${selected.fontSize}px ${selected.font}`;
+      selected.w=ctx.measureText(t).width+30;
+    }
     draw();
   }
 });
@@ -263,5 +401,6 @@ function exportJPG(){
 
 draw();
 </script>
+
 </body>
 </html>
