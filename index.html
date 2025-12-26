@@ -2,40 +2,75 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Nameplate Designer – Colour + Metallic</title>
+<title>Nameplate Designer – Bottom Controls</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins&family=Montserrat&family=Playfair+Display&family=Great+Vibes&family=Dancing+Script&display=swap" rel="stylesheet">
 
 <style>
-body{margin:0;font-family:Poppins;background:#eee;}
-#controls{
-  background:#fff;padding:10px;
-  display:flex;gap:10px;flex-wrap:wrap;
-  justify-content:center;align-items:center;
+body{
+  margin:0;
+  font-family:Poppins;
+  background:#eee;
 }
-select,button{padding:6px 10px;font-size:14px;}
+
+/* ---------- CANVAS ---------- */
+canvas{
+  background:#fff;
+  border:2px solid #000;
+  display:block;
+  margin:15px auto;
+  touch-action:none;
+}
+
+/* ---------- BOTTOM CONTROLS ---------- */
+#bottom-controls{
+  background:#000;
+  padding:12px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+
+#bottom-controls select,
+#bottom-controls button{
+  width:100%;
+  padding:14px;
+  font-size:16px;
+  background:#000;
+  color:#f7f4e9; /* ivory */
+  border:1px solid #f7f4e9;
+  border-radius:8px;
+}
+
+/* ---------- COLOR PANEL ---------- */
 #colors{
-  display:none;background:#fff;padding:8px;
-  margin:auto;width:max-content;border-radius:8px;
+  display:none;
+  background:#000;
+  padding:10px;
+  grid-column:1 / -1;
+  text-align:center;
 }
 .color{
-  width:26px;height:26px;border-radius:50%;
-  display:inline-block;margin:4px;
-  border:1px solid #333;cursor:pointer;
-}
-canvas{
-  background:#fff;border:2px solid #000;
-  display:block;margin:15px auto;
-  touch-action:none;
+  width:30px;
+  height:30px;
+  border-radius:50%;
+  display:inline-block;
+  margin:6px;
+  border:1px solid #f7f4e9;
+  cursor:pointer;
 }
 </style>
 </head>
 
 <body>
 
-<div id="controls">
+<canvas id="canvas" width="900" height="450"></canvas>
+
+<div id="bottom-controls">
+
+  <!-- ROW 1 -->
   <select onchange="addShape(this.value)">
-    <option value="">Shape</option>
+    <option value="">Select Shape</option>
     <option value="rect">Rectangle</option>
     <option value="rounded">Rounded</option>
     <option value="circle">Circle</option>
@@ -47,8 +82,9 @@ canvas{
 
   <button onclick="addText()">Add Text</button>
 
+  <!-- ROW 2 -->
   <select onchange="changeFont(this.value)">
-    <option value="">Font</option>
+    <option value="">Select Font</option>
     <option>Poppins</option>
     <option>Montserrat</option>
     <option>Playfair Display</option>
@@ -56,14 +92,18 @@ canvas{
     <option>Dancing Script</option>
   </select>
 
-  <button id="colorBtn" onclick="toggleColors()" style="display:none;">🎨 Select Colour</button>
+  <button id="colorBtn" onclick="toggleColors()" style="display:none;">
+    Select Colour
+  </button>
+
+  <!-- COLOR PALETTE FULL WIDTH -->
+  <div id="colors"></div>
+
 </div>
 
-<div id="colors"></div>
-
-<canvas id="canvas" width="900" height="450"></canvas>
-
 <script>
+/* ================= EXISTING LOGIC (UNCHANGED) ================= */
+
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 const colorsDiv = document.getElementById("colors");
@@ -72,8 +112,7 @@ const colorBtn = document.getElementById("colorBtn");
 let objects=[], selected=null;
 let mode=null, sx=0, sy=0, startAngle=0;
 
-/* ---------- COLOURS ---------- */
-const PALETTE = [
+const PALETTE=[
   {type:"solid", value:"#000"},
   {type:"solid", value:"#fff"},
   {type:"solid", value:"#5a3a22"},
@@ -88,25 +127,12 @@ const PALETTE = [
 
 function metallicGradient(type,w){
   const g=ctx.createLinearGradient(0,0,w,0);
-  if(type==="gold"){
-    g.addColorStop(0,"#7a5c00");
-    g.addColorStop(0.5,"#fff3b0");
-    g.addColorStop(1,"#7a5c00");
-  }
-  if(type==="silver"){
-    g.addColorStop(0,"#7d7d7d");
-    g.addColorStop(0.5,"#ffffff");
-    g.addColorStop(1,"#7d7d7d");
-  }
-  if(type==="rosegold"){
-    g.addColorStop(0,"#8b5a5a");
-    g.addColorStop(0.5,"#f3c1c1");
-    g.addColorStop(1,"#8b5a5a");
-  }
+  if(type==="gold"){g.addColorStop(0,"#7a5c00");g.addColorStop(.5,"#fff3b0");g.addColorStop(1,"#7a5c00");}
+  if(type==="silver"){g.addColorStop(0,"#7d7d7d");g.addColorStop(.5,"#ffffff");g.addColorStop(1,"#7d7d7d");}
+  if(type==="rosegold"){g.addColorStop(0,"#8b5a5a");g.addColorStop(.5,"#f3c1c1");g.addColorStop(1,"#8b5a5a");}
   return g;
 }
 
-/* ---------- HELPERS ---------- */
 function getPos(e){
   const r=canvas.getBoundingClientRect();
   const t=e.touches?e.touches[0]:e;
@@ -119,7 +145,6 @@ function getPos(e){
 /* ---------- DRAW ---------- */
 function draw(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
-
   objects.forEach(o=>{
     ctx.save();
     ctx.translate(o.x+o.w/2,o.y+o.h/2);
@@ -127,9 +152,9 @@ function draw(){
     ctx.translate(-o.w/2,-o.h/2);
 
     if(o.colorType==="metallic"){
-      ctx.fillStyle = metallicGradient(o.colorValue,o.w);
-    } else {
-      ctx.fillStyle = o.colorValue;
+      ctx.fillStyle=metallicGradient(o.colorValue,o.w);
+    }else{
+      ctx.fillStyle=o.colorValue;
     }
 
     if(o.type==="shape") drawShape(o);
@@ -146,7 +171,6 @@ function draw(){
   });
 }
 
-/* ---------- SHAPES ---------- */
 function drawShape(o){
   const w=o.w,h=o.h;
   ctx.beginPath();
@@ -155,20 +179,10 @@ function drawShape(o){
   if(o.shape==="circle") ctx.arc(w/2,h/2,w/2,0,Math.PI*2);
   if(o.shape==="oval") ctx.ellipse(w/2,h/2,w/2,h/2,0,0,Math.PI*2);
   if(o.shape==="pill") roundRect(0,0,w,h,h/2);
-  if(o.shape==="diamond"){
-    ctx.moveTo(w/2,0);ctx.lineTo(w,h/2);
-    ctx.lineTo(w/2,h);ctx.lineTo(0,h/2);ctx.closePath();
-  }
-  if(o.shape==="hexagon"){
-    for(let i=0;i<6;i++){
-      const a=Math.PI/3*i;
-      ctx.lineTo(w/2+w/2*Math.cos(a),h/2+h/2*Math.sin(a));
-    }
-    ctx.closePath();
-  }
+  if(o.shape==="diamond"){ctx.moveTo(w/2,0);ctx.lineTo(w,h/2);ctx.lineTo(w/2,h);ctx.lineTo(0,h/2);ctx.closePath();}
+  if(o.shape==="hexagon"){for(let i=0;i<6;i++){const a=Math.PI/3*i;ctx.lineTo(w/2+w/2*Math.cos(a),h/2+h/2*Math.sin(a));}ctx.closePath();}
   ctx.fill();
 }
-
 function roundRect(x,y,w,h,r){
   ctx.moveTo(x+r,y);
   ctx.arcTo(x+w,y,x+w,y+h,r);
@@ -181,12 +195,10 @@ function roundRect(x,y,w,h,r){
 function drawHandles(o){
   ctx.strokeStyle="#1e90ff";
   ctx.strokeRect(0,0,o.w,o.h);
-
   drawHandle(-16,-16,"×");
   drawHandle(o.w+16,-16,"↻");
   drawHandle(o.w+16,o.h+16,"↔");
 }
-
 function drawHandle(x,y,t){
   ctx.beginPath();
   ctx.arc(x,y,10,0,Math.PI*2);
@@ -199,57 +211,36 @@ function drawHandle(x,y,t){
 function addShape(s){
   if(!s) return;
   objects=objects.filter(o=>o.type!=="shape");
-  selected={
-    type:"shape",shape:s,
-    x:250,y:150,w:350,h:150,
-    rotation:0,
-    colorType:"solid",
-    colorValue:"#000"
-  };
+  selected={type:"shape",shape:s,x:250,y:150,w:350,h:150,rotation:0,colorType:"solid",colorValue:"#000"};
   objects.unshift(selected);
-  colorBtn.style.display="inline-block";
+  colorBtn.style.display="block";
   draw();
 }
-
 function addText(){
   const t=prompt("Text","Your Name");
   if(!t) return;
-  selected={
-    type:"text",text:t,
-    x:300,y:200,
-    size:40,font:"Poppins",
-    rotation:0,
-    colorType:"solid",
-    colorValue:"#000",
-    w:0,h:0
-  };
+  selected={type:"text",text:t,x:300,y:200,size:40,font:"Poppins",rotation:0,colorType:"solid",colorValue:"#000",w:0,h:0};
   objects.push(selected);
-  colorBtn.style.display="inline-block";
+  colorBtn.style.display="block";
   draw();
 }
-
 function changeFont(f){
-  if(selected&&selected.type==="text"){
-    selected.font=f;
-    draw();
-  }
+  if(selected&&selected.type==="text"){selected.font=f;draw();}
 }
 
-/* ---------- COLORS UI ---------- */
+/* ---------- COLORS ---------- */
 function toggleColors(){
   colorsDiv.innerHTML="";
   PALETTE.forEach(c=>{
     const d=document.createElement("div");
     d.className="color";
-    if(c.type==="metallic"){
-      d.style.background = c.value==="gold"
-        ? "linear-gradient(90deg,#7a5c00,#fff3b0,#7a5c00)"
-        : c.value==="silver"
-        ? "linear-gradient(90deg,#7d7d7d,#ffffff,#7d7d7d)"
-        : "linear-gradient(90deg,#8b5a5a,#f3c1c1,#8b5a5a)";
-    } else {
-      d.style.background = c.value;
-    }
+    d.style.background=c.type==="metallic"
+      ? c.value==="gold"
+        ?"linear-gradient(90deg,#7a5c00,#fff3b0,#7a5c00)"
+        :c.value==="silver"
+        ?"linear-gradient(90deg,#7d7d7d,#ffffff,#7d7d7d)"
+        :"linear-gradient(90deg,#8b5a5a,#f3c1c1,#8b5a5a)"
+      :c.value;
     d.onclick=()=>{
       selected.colorType=c.type;
       selected.colorValue=c.value;
@@ -258,7 +249,7 @@ function toggleColors(){
     };
     colorsDiv.appendChild(d);
   });
-  colorsDiv.style.display = colorsDiv.style.display==="block"?"none":"block";
+  colorsDiv.style.display=colorsDiv.style.display==="block"?"none":"block";
 }
 
 /* ---------- EVENTS ---------- */
@@ -275,24 +266,12 @@ canvas.onmousedown = canvas.ontouchstart = e=>{
     const rx=cos*dx-sin*dy+o.w/2;
     const ry=sin*dx+cos*dy+o.h/2;
 
-    if(Math.hypot(rx+16,ry+16)<10){
-      objects.splice(i,1);
-      colorBtn.style.display="none";
-      draw(); return;
-    }
-    if(Math.hypot(rx-(o.w+16),ry+16)<10){
-      selected=o; mode="rotate";
-      startAngle=Math.atan2(p.y-cy,p.x-cx)-o.rotation;
-      break;
-    }
-    if(Math.hypot(rx-(o.w+16),ry-(o.h+16))<10){
-      selected=o; mode="resize"; sx=p.x; sy=p.y; break;
-    }
-    if(rx>0&&rx<o.w&&ry>0&&ry<o.h){
-      selected=o; mode="move"; sx=p.x; sy=p.y; break;
-    }
+    if(Math.hypot(rx+16,ry+16)<10){objects.splice(i,1);colorBtn.style.display="none";draw();return;}
+    if(Math.hypot(rx-(o.w+16),ry+16)<10){selected=o;mode="rotate";startAngle=Math.atan2(p.y-cy,p.x-cx)-o.rotation;break;}
+    if(Math.hypot(rx-(o.w+16),ry-(o.h+16))<10){selected=o;mode="resize";sx=p.x;sy=p.y;break;}
+    if(rx>0&&rx<o.w&&ry>0&&ry<o.h){selected=o;mode="move";sx=p.x;sy=p.y;break;}
   }
-  colorBtn.style.display = selected ? "inline-block" : "none";
+  colorBtn.style.display=selected?"block":"none";
   draw();
 };
 
@@ -301,23 +280,17 @@ canvas.onmousemove = canvas.ontouchmove = e=>{
   e.preventDefault();
   const p=getPos(e);
 
-  if(mode==="move"){
-    selected.x+=p.x-sx; selected.y+=p.y-sy;
-    sx=p.x; sy=p.y;
-  }
+  if(mode==="move"){selected.x+=p.x-sx;selected.y+=p.y-sy;}
   if(mode==="resize"){
-    selected.w+=p.x-sx; selected.h+=p.y-sy;
-    if(selected.type==="text"){
-      selected.size+=(p.y-sy)*0.5;
-      if(selected.size<10) selected.size=10;
-    }
-    sx=p.x; sy=p.y;
+    selected.w+=p.x-sx;selected.h+=p.y-sy;
+    if(selected.type==="text"){selected.size+=(p.y-sy)*0.5;if(selected.size<10)selected.size=10;}
   }
   if(mode==="rotate"){
     const cx=selected.x+selected.w/2;
     const cy=selected.y+selected.h/2;
     selected.rotation=Math.atan2(p.y-cy,p.x-cx)-startAngle;
   }
+  sx=p.x; sy=p.y;
   draw();
 };
 
