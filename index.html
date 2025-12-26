@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Nameplate Designer – Stable + Rotate</title>
+<title>Nameplate Designer – Rotate / Resize / Delete</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins&family=Montserrat&family=Playfair+Display&family=Great+Vibes&family=Dancing+Script&display=swap" rel="stylesheet">
 
@@ -54,7 +54,6 @@ canvas{
 </div>
 
 <div id="colors"></div>
-
 <canvas id="canvas" width="900" height="450"></canvas>
 
 <script>
@@ -62,17 +61,16 @@ const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 const colorsDiv = document.getElementById("colors");
 
-let objects = [];
-let selected = null;
-let mode = null; // move | resize | rotate
+let objects=[], selected=null;
+let mode=null; // move | resize | rotate | delete
 let sx=0, sy=0, startAngle=0;
 
-const COLORS = ["#000","#fff","#5a3a22","#f7f4e9","#e74c3c","#3498db","#2ecc71"];
+const COLORS=["#000","#fff","#5a3a22","#f7f4e9","#e74c3c","#3498db","#2ecc71"];
 
-/* ---------- HELPERS ---------- */
+/* ---------- UTIL ---------- */
 function getPos(e){
-  const r = canvas.getBoundingClientRect();
-  const t = e.touches ? e.touches[0] : e;
+  const r=canvas.getBoundingClientRect();
+  const t=e.touches?e.touches[0]:e;
   return {
     x:(t.clientX-r.left)*(canvas.width/r.width),
     y:(t.clientY-r.top)*(canvas.height/r.height)
@@ -85,19 +83,19 @@ function draw(){
 
   objects.forEach(o=>{
     ctx.save();
-    ctx.translate(o.x + o.w/2, o.y + o.h/2);
+    ctx.translate(o.x+o.w/2,o.y+o.h/2);
     ctx.rotate(o.rotation);
-    ctx.translate(-o.w/2, -o.h/2);
+    ctx.translate(-o.w/2,-o.h/2);
 
-    ctx.fillStyle = o.color;
+    ctx.fillStyle=o.color;
 
     if(o.type==="shape") drawShape(o);
     if(o.type==="text"){
-      ctx.font = `${o.size}px ${o.font}`;
+      ctx.font=`${o.size}px ${o.font}`;
       ctx.textBaseline="top";
       ctx.fillText(o.text,0,0);
-      o.w = ctx.measureText(o.text).width;
-      o.h = o.size;
+      o.w=ctx.measureText(o.text).width;
+      o.h=o.size;
     }
 
     if(o===selected) drawHandles(o);
@@ -128,7 +126,6 @@ function drawShape(o){
   }
   ctx.fill();
 }
-
 function roundRect(x,y,w,h,r){
   ctx.moveTo(x+r,y);
   ctx.arcTo(x+w,y,x+w,y+h,r);
@@ -142,22 +139,26 @@ function drawHandles(o){
   ctx.strokeStyle="#1e90ff";
   ctx.strokeRect(0,0,o.w,o.h);
 
-  // resize
-  ctx.fillRect(o.w-8,o.h-8,8,8);
+  drawHandle(-16,-16,"×");           // delete
+  drawHandle(o.w+16,-16,"↻");        // rotate
+  drawHandle(o.w+16,o.h+16,"↔");     // resize
+}
 
-  // rotate handle (top-right)
+function drawHandle(x,y,t){
   ctx.beginPath();
-  ctx.arc(o.w+14,-14,8,0,Math.PI*2);
+  ctx.arc(x,y,10,0,Math.PI*2);
   ctx.fillStyle="#fff";
   ctx.fill();
   ctx.stroke();
+  ctx.fillStyle="#000";
+  ctx.fillText(t,x-5,y+5);
 }
 
 /* ---------- ADD ---------- */
 function addShape(s){
   if(!s) return;
-  objects = objects.filter(o=>o.type!=="shape");
-  selected = {
+  objects=objects.filter(o=>o.type!=="shape");
+  selected={
     type:"shape",shape:s,
     x:250,y:150,w:350,h:150,
     rotation:0,color:"#000"
@@ -168,9 +169,9 @@ function addShape(s){
 }
 
 function addText(){
-  const t = prompt("Text","Your Name");
+  const t=prompt("Text","Your Name");
   if(!t) return;
-  selected = {
+  selected={
     type:"text",text:t,
     x:300,y:200,
     size:40,font:"Poppins",
@@ -182,8 +183,8 @@ function addText(){
 }
 
 function changeFont(f){
-  if(selected && selected.type==="text"){
-    selected.font = f;
+  if(selected&&selected.type==="text"){
+    selected.font=f;
     draw();
   }
 }
@@ -201,46 +202,33 @@ function showColors(){
   colorsDiv.style.display="block";
 }
 
-/* ---------- EVENTS (MOUSE + TOUCH) ---------- */
+/* ---------- EVENTS ---------- */
 canvas.onmousedown = canvas.ontouchstart = e=>{
   e.preventDefault();
-  const p = getPos(e);
+  const p=getPos(e);
   selected=null; mode=null;
 
   for(let i=objects.length-1;i>=0;i--){
     const o=objects[i];
-
-    const cx=o.x+o.w/2;
-    const cy=o.y+o.h/2;
-
-    const dx=p.x-cx;
-    const dy=p.y-cy;
-    const cos=Math.cos(-o.rotation);
-    const sin=Math.sin(-o.rotation);
+    const cx=o.x+o.w/2, cy=o.y+o.h/2;
+    const dx=p.x-cx, dy=p.y-cy;
+    const cos=Math.cos(-o.rotation), sin=Math.sin(-o.rotation);
     const rx=cos*dx-sin*dy+o.w/2;
     const ry=sin*dx+cos*dy+o.h/2;
 
-    // rotate handle
-    if(Math.hypot(rx-(o.w+14),ry+14)<8){
-      selected=o;
-      mode="rotate";
+    if(Math.hypot(rx+16,ry+16)<10){
+      objects.splice(i,1); draw(); return;
+    }
+    if(Math.hypot(rx-(o.w+16),ry+16)<10){
+      selected=o; mode="rotate";
       startAngle=Math.atan2(p.y-cy,p.x-cx)-o.rotation;
       break;
     }
-
-    // resize
-    if(rx>o.w-8 && ry>o.h-8){
-      selected=o;
-      mode="resize";
-      break;
+    if(Math.hypot(rx-(o.w+16),ry-(o.h+16))<10){
+      selected=o; mode="resize"; sx=p.x; sy=p.y; break;
     }
-
-    // move
-    if(rx>0 && rx<o.w && ry>0 && ry<o.h){
-      selected=o;
-      mode="move";
-      sx=p.x; sy=p.y;
-      break;
+    if(rx>0&&rx<o.w&&ry>0&&ry<o.h){
+      selected=o; mode="move"; sx=p.x; sy=p.y; break;
     }
   }
   draw();
@@ -249,36 +237,29 @@ canvas.onmousedown = canvas.ontouchstart = e=>{
 canvas.onmousemove = canvas.ontouchmove = e=>{
   if(!selected||!mode) return;
   e.preventDefault();
-  const p = getPos(e);
+  const p=getPos(e);
 
   if(mode==="move"){
-    selected.x+=p.x-sx;
-    selected.y+=p.y-sy;
+    selected.x+=p.x-sx; selected.y+=p.y-sy;
     sx=p.x; sy=p.y;
   }
-
   if(mode==="resize"){
-    selected.w+=p.x-sx;
-    selected.h+=p.y-sy;
+    selected.w+=p.x-sx; selected.h+=p.y-sy;
     if(selected.type==="text"){
-      selected.size+= (p.y-sy)*0.5;
+      selected.size+=(p.y-sy)*0.5;
       if(selected.size<10) selected.size=10;
     }
     sx=p.x; sy=p.y;
   }
-
   if(mode==="rotate"){
     const cx=selected.x+selected.w/2;
     const cy=selected.y+selected.h/2;
     selected.rotation=Math.atan2(p.y-cy,p.x-cx)-startAngle;
   }
-
   draw();
 };
 
-canvas.onmouseup = canvas.ontouchend = ()=>{
-  mode=null;
-};
+canvas.onmouseup = canvas.ontouchend = ()=>{mode=null;};
 
 draw();
 </script>
