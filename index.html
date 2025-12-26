@@ -1,27 +1,28 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
 <title>Nameplate Designer</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins&family=Great+Vibes&family=Playfair+Display&family=Cormorant&family=Dancing+Script&family=Montserrat&family=Cinzel&family=Libre+Baskerville&family=Lora&family=Abril+Fatface&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins&family=Great+Vibes&family=Playfair+Display&family=Cormorant&family=Dancing+Script&display=swap" rel="stylesheet">
 
 <style>
-body{margin:0;font-family:Poppins,sans-serif;background:#f2f2f2;}
+body{margin:0;font-family:Poppins;background:#f2f2f2;}
 #controls{
-  background:#fff;padding:10px;display:flex;gap:10px;
-  justify-content:center;align-items:center;flex-wrap:wrap;
+  background:#fff;padding:10px;
+  display:flex;gap:10px;flex-wrap:wrap;
+  justify-content:center;align-items:center;
 }
-select,button{padding:6px 10px;font-size:14px;cursor:pointer;}
+select,button{padding:6px 10px;font-size:14px;}
 .icon-btn{font-size:18px;border:1px solid #ccc;border-radius:6px;background:#fff;}
 #colorPanel{
-  display:none;background:#fff;padding:8px;margin:5px auto;
-  width:fit-content;border-radius:6px;
+  display:none;background:#fff;padding:8px;
+  margin:5px auto;border-radius:6px;
 }
 .color-swatch{
   width:24px;height:24px;border-radius:50%;
-  display:inline-block;margin:4px;border:1px solid #aaa;
-  cursor:pointer;
+  display:inline-block;margin:4px;
+  border:1px solid #aaa;cursor:pointer;
 }
 canvas{
   background:#fff;border:2px solid #333;
@@ -35,15 +36,27 @@ canvas{
 
 <div id="controls">
   <select onchange="addShape(this.value)">
-    <option value="">Choose Shape</option>
+    <option value="">Shape</option>
     <option value="rect">Rectangle</option>
     <option value="rounded">Rounded</option>
     <option value="pill">Pill</option>
     <option value="circle">Circle</option>
   </select>
 
+  <select onchange="addLogo(this.value)">
+    <option value="">Add Logo</option>
+    <option value="om">Om</option>
+    <option value="cross">Cross</option>
+    <option value="ganesh">Ganesh</option>
+    <option value="trishul">Trishul</option>
+    <option value="krishna">Krishna</option>
+    <option value="buddha">Buddha</option>
+    <option value="swastik">Swastik</option>
+    <option value="house">House</option>
+  </select>
+
   <select onchange="changeFont(this.value)">
-    <option value="">Select Font</option>
+    <option value="">Font</option>
     <option>Poppins</option>
     <option>Great Vibes</option>
     <option>Playfair Display</option>
@@ -72,7 +85,6 @@ let action=null, sx=0, sy=0, startAngle=0;
 let undoStack=[], redoStack=[];
 
 const ICON_R=10, ICON_OFFSET=18;
-
 const COLORS=["#000","#fff","#5a3a22","#f7f4e9","#d4af37","#c0c0c0","#b76e79","#f1c40f","#e74c3c","#3498db","#2ecc71"];
 
 /* ---------- HELPERS ---------- */
@@ -83,8 +95,8 @@ function getPos(e){
           y:(t.clientY-r.top)*(canvas.height/r.height)};
 }
 function saveState(){undoStack.push(JSON.stringify(objects));redoStack=[];}
-function undo(){if(!undoStack.length)return;redoStack.push(JSON.stringify(objects));objects=JSON.parse(undoStack.pop());selected=null;draw();}
-function redo(){if(!redoStack.length)return;undoStack.push(JSON.stringify(objects));objects=JSON.parse(redoStack.pop());selected=null;draw();}
+function undo(){if(!undoStack.length)return;redoStack.push(JSON.stringify(objects));objects=JSON.parse(undoStack.pop());selected=null;hideColor();draw();}
+function redo(){if(!redoStack.length)return;undoStack.push(JSON.stringify(objects));objects=JSON.parse(redoStack.pop());selected=null;hideColor();draw();}
 function dist(x1,y1,x2,y2){return Math.hypot(x1-x2,y1-y2);}
 
 /* ---------- DRAW ---------- */
@@ -97,31 +109,9 @@ function draw(){
     ctx.translate(-o.w/2,-o.h/2);
 
     ctx.fillStyle=o.color;
+
     if(o.type==="shape"){
-      if(o.shape==="rect") ctx.fillRect(0,0,o.w,o.h);
-      if(o.shape==="rounded"){
-        ctx.beginPath();
-        ctx.moveTo(20,0);ctx.lineTo(o.w-20,0);
-        ctx.quadraticCurveTo(o.w,0,o.w,20);
-        ctx.lineTo(o.w,o.h-20);
-        ctx.quadraticCurveTo(o.w,o.h,o.w-20,o.h);
-        ctx.lineTo(20,o.h);
-        ctx.quadraticCurveTo(0,o.h,0,o.h-20);
-        ctx.lineTo(0,20);
-        ctx.quadraticCurveTo(0,0,20,0);
-        ctx.fill();
-      }
-      if(o.shape==="pill"){
-        ctx.beginPath();
-        ctx.arc(o.h/2,o.h/2,o.h/2,Math.PI/2,Math.PI*1.5);
-        ctx.arc(o.w-o.h/2,o.h/2,o.h/2,Math.PI*1.5,Math.PI/2);
-        ctx.fill();
-      }
-      if(o.shape==="circle"){
-        ctx.beginPath();
-        ctx.arc(o.w/2,o.h/2,o.w/2,0,Math.PI*2);
-        ctx.fill();
-      }
+      ctx.fillRect(0,0,o.w,o.h);
     }
 
     if(o.type==="text"){
@@ -131,29 +121,46 @@ function draw(){
       ctx.fillText(o.text,o.w/2,o.h/2);
     }
 
+    if(o.type==="logo"){
+      drawLogo(o.logo,o.w,o.h,o.color);
+    }
+
     if(o===selected){
       ctx.strokeStyle="#1e90ff";
       ctx.setLineDash([6,4]);
       ctx.strokeRect(0,0,o.w,o.h);
       ctx.setLineDash([]);
 
-      drawIcon(o,-ICON_OFFSET,-ICON_OFFSET,"delete");
-      drawIcon(o,o.w+ICON_OFFSET,-ICON_OFFSET,"rotate");
-      drawIcon(o,o.w+ICON_OFFSET,o.h+ICON_OFFSET,"resize");
+      drawIcon(-ICON_OFFSET,-ICON_OFFSET,"×");
+      drawIcon(o.w+ICON_OFFSET,-ICON_OFFSET,"↻");
+      drawIcon(o.w+ICON_OFFSET,o.h+ICON_OFFSET,"↔");
     }
 
     ctx.restore();
   });
 }
 
-function drawIcon(o,x,y,type){
+function drawIcon(x,y,t){
   ctx.beginPath();
   ctx.arc(x,y,ICON_R,0,Math.PI*2);
   ctx.fillStyle="#fff";ctx.fill();ctx.stroke();
   ctx.fillStyle="#333";
-  if(type==="delete"){ctx.fillText("×",x-4,y+4);}
-  if(type==="rotate"){ctx.fillText("↻",x-5,y+5);}
-  if(type==="resize"){ctx.fillText("↔",x-5,y+5);}
+  ctx.fillText(t,x-4,y+4);
+}
+
+/* ---------- LOGOS (SIMPLE SVG-LIKE PATHS) ---------- */
+function drawLogo(type,w,h,color){
+  ctx.fillStyle=color;
+  ctx.beginPath();
+  if(type==="om") ctx.arc(w/2,h/2,w/3,0,Math.PI*2);
+  if(type==="cross"){ctx.rect(w/2-5,0,10,h);ctx.rect(0,h/2-5,w,10);}
+  if(type==="swastik"){ctx.rect(0,0,w/4,h/4);}
+  if(type==="house"){ctx.moveTo(w/2,0);ctx.lineTo(w,h/2);ctx.lineTo(0,h/2);ctx.closePath();}
+  if(type==="ganesh"){ctx.arc(w/2,h/2,w/3,0,Math.PI*2);}
+  if(type==="trishul"){ctx.rect(w/2-3,0,6,h);}
+  if(type==="krishna"){ctx.arc(w/2,h/2,w/4,0,Math.PI*2);}
+  if(type==="buddha"){ctx.arc(w/2,h/2,w/3,0,Math.PI*2);}
+  ctx.fill();
 }
 
 /* ---------- HIT ---------- */
@@ -169,7 +176,8 @@ function hit(x,y,o){
 function down(e){
   e.preventDefault();
   const p=getPos(e);
-  selected=null;action=null;
+  selected=null;action=null;hideColor();
+
   for(let i=objects.length-1;i>=0;i--){
     const o=objects[i];
     const h=hit(p.x,p.y,o);
@@ -178,6 +186,7 @@ function down(e){
       sx=p.x;sy=p.y;
       startAngle=Math.atan2(p.y-(o.y+o.h/2),p.x-(o.x+o.w/2))-o.rotation;
       if(h==="delete"){saveState();objects.splice(i,1);selected=null;}
+      showColor();
       break;
     }
   }
@@ -190,8 +199,7 @@ function move(e){
   if(action==="move"){selected.x+=p.x-sx;selected.y+=p.y-sy;}
   if(action==="resize"){selected.w+=p.x-sx;selected.h+=p.y-sy;}
   if(action==="rotate"){selected.rotation=Math.atan2(p.y-(selected.y+selected.h/2),p.x-(selected.x+selected.w/2))-startAngle;}
-  sx=p.x;sy=p.y;
-  draw();
+  sx=p.x;sy=p.y;draw();
 }
 function up(){if(action)saveState();action=null;}
 
@@ -204,23 +212,28 @@ canvas.addEventListener("touchend",up);
 
 /* ---------- ADD ---------- */
 function addShape(s){
-  if(!s)return;
-  saveState();
+  if(!s)return;saveState();
   objects=objects.filter(o=>o.type!=="shape");
   objects.unshift({type:"shape",shape:s,x:250,y:130,w:300,h:140,color:"#000",rotation:0});
-  selected=objects[0];draw();
+  selected=objects[0];showColor();draw();
 }
 function addText(){
   const t=prompt("Text","Your Name");
-  if(!t)return;
-  saveState();
+  if(!t)return;saveState();
   ctx.font="36px Poppins";
   const w=ctx.measureText(t).width+30;
   objects.push({type:"text",text:t,x:400-w/2,y:170,w,h:60,fontSize:36,font:"Poppins",color:"#000",rotation:0});
-  selected=objects.at(-1);draw();
+  selected=objects.at(-1);showColor();draw();
+}
+function addLogo(l){
+  if(!l)return;saveState();
+  objects.push({type:"logo",logo:l,x:380,y:150,w:80,h:80,color:"#000",rotation:0});
+  selected=objects.at(-1);showColor();draw();
 }
 
 /* ---------- COLOR ---------- */
+function showColor(){colorBtn.style.display="inline-block";}
+function hideColor(){colorBtn.style.display="none";colorPanel.style.display="none";}
 function toggleColorPanel(){
   colorPanel.innerHTML="";
   COLORS.forEach(c=>{
@@ -233,11 +246,9 @@ function toggleColorPanel(){
   colorPanel.style.display="block";
 }
 
-/* ---------- FONT ---------- */
 function changeFont(f){
   if(selected&&selected.type==="text"){
-    saveState();
-    selected.font=f;
+    saveState();selected.font=f;
     ctx.font=`${selected.fontSize}px ${f}`;
     selected.w=ctx.measureText(selected.text).width+30;
     draw();
