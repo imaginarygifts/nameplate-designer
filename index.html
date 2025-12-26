@@ -1,29 +1,38 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <title>Nameplate Designer</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Great+Vibes&family=Playfair+Display:wght@500;700&family=Cormorant:wght@400;600&family=Dancing+Script:wght@500;700&display=swap" rel="stylesheet">
 
 <style>
 body{
   margin:0;
-  font-family:Poppins,sans-serif;
+  font-family:Poppins, sans-serif;
   background:#f2f2f2;
 }
+
 #controls{
   background:#fff;
   padding:10px;
   display:flex;
   gap:10px;
   justify-content:center;
+  flex-wrap:wrap;
 }
+
+select, button{
+  padding:6px 10px;
+  font-size:14px;
+}
+
 canvas{
   background:#fff;
   border:2px solid #333;
   display:block;
-  margin:20px auto;
+  margin:15px auto;
 }
 </style>
 </head>
@@ -31,7 +40,25 @@ canvas{
 <body>
 
 <div id="controls">
-  <button onclick="addShape()">Rectangle</button>
+  <!-- Shape dropdown -->
+  <select onchange="addShape(this.value)">
+    <option value="">Choose Shape</option>
+    <option value="rect">Rectangle</option>
+    <option value="rounded">Rounded</option>
+    <option value="circle">Circle</option>
+    <option value="arch">Arch</option>
+  </select>
+
+  <!-- Font dropdown -->
+  <select onchange="changeFont(this.value)">
+    <option value="">Select Font</option>
+    <option value="Poppins">Poppins</option>
+    <option value="Great Vibes">Great Vibes</option>
+    <option value="Playfair Display">Playfair Display</option>
+    <option value="Cormorant">Cormorant</option>
+    <option value="Dancing Script">Dancing Script</option>
+  </select>
+
   <button onclick="addText()">Add Text</button>
   <button onclick="exportJPG()">Save JPG</button>
 </div>
@@ -39,18 +66,16 @@ canvas{
 <canvas id="canvas" width="800" height="400"></canvas>
 
 <script>
-const canvas=document.getElementById("canvas");
-const ctx=canvas.getContext("2d");
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
 
 let objects=[];
 let selected=null;
 let action=null;
-let handle=null;
-let startAngle=0;
-let startX=0,startY=0;
+let startX=0,startY=0,startAngle=0;
 
-const HANDLE=8;
-const ROTATE_OFFSET=28;
+const HANDLE_R = 7;
+const ROTATE_OFFSET = 26;
 
 /* ---------- DRAW ---------- */
 function draw(){
@@ -62,19 +87,44 @@ function draw(){
     ctx.rotate(o.rotation);
     ctx.translate(-o.w/2,-o.h/2);
 
-    if(o.type==="shape"){
+    // Shapes
+    if(o.type==="rect"){
       ctx.fillStyle=o.color;
       ctx.fillRect(0,0,o.w,o.h);
     }
 
+    if(o.type==="rounded"){
+      roundRect(0,0,o.w,o.h,20,o.color);
+    }
+
+    if(o.type==="circle"){
+      ctx.fillStyle=o.color;
+      ctx.beginPath();
+      ctx.arc(o.w/2,o.h/2,o.w/2,0,Math.PI*2);
+      ctx.fill();
+    }
+
+    if(o.type==="arch"){
+      ctx.fillStyle=o.color;
+      ctx.beginPath();
+      ctx.moveTo(0,o.h);
+      ctx.lineTo(0,o.h/2);
+      ctx.arc(o.w/2,o.h/2,o.w/2,Math.PI,0);
+      ctx.lineTo(o.w,o.h);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    // Text
     if(o.type==="text"){
       ctx.fillStyle=o.color;
-      ctx.font=`${o.fontSize}px Poppins`;
+      ctx.font=`${o.fontSize}px ${o.font}`;
       ctx.textAlign="center";
       ctx.textBaseline="middle";
       ctx.fillText(o.text,o.w/2,o.h/2);
     }
 
+    // Selection UI
     if(o===selected){
       drawSelection(o);
     }
@@ -83,44 +133,74 @@ function draw(){
   });
 }
 
+function roundRect(x,y,w,h,r,color){
+  ctx.fillStyle=color;
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.fill();
+}
+
+/* ---------- SELECTION UI ---------- */
 function drawSelection(o){
   ctx.strokeStyle="#1e90ff";
   ctx.setLineDash([6,4]);
   ctx.strokeRect(0,0,o.w,o.h);
   ctx.setLineDash([]);
 
-  // resize handles
-  const pts=[[0,0],[o.w,0],[0,o.h],[o.w,o.h]];
-  pts.forEach(p=>{
-    ctx.fillStyle="#1e90ff";
-    ctx.fillRect(p[0]-HANDLE/2,p[1]-HANDLE/2,HANDLE,HANDLE);
-  });
+  // Resize handles (blue)
+  drawCircle(0,0,"#1e90ff");
+  drawCircle(o.w,0,"#1e90ff");
+  drawCircle(0,o.h,"#1e90ff");
+  drawCircle(o.w,o.h,"#1e90ff");
 
-  // delete
-  ctx.beginPath();
-  ctx.arc(-20,-20,8,0,Math.PI*2);
-  ctx.fillStyle="#ff4d4d";
-  ctx.fill();
+  // Delete (grey, top-left)
+  drawCircle(-ROTATE_OFFSET,-ROTATE_OFFSET,"#ccc");
 
-  // rotate
+  // Rotate (red, top-right)
+  drawCircle(o.w+ROTATE_OFFSET,-ROTATE_OFFSET,"#e74c3c");
+}
+
+function drawCircle(x,y,color){
   ctx.beginPath();
-  ctx.arc(o.w+20,-20,8,0,Math.PI*2);
-  ctx.fillStyle="#1e90ff";
+  ctx.arc(x,y,HANDLE_R,0,Math.PI*2);
+  ctx.fillStyle=color;
   ctx.fill();
 }
 
-/* ---------- ADD ---------- */
-function addShape(){
-  objects=objects.filter(o=>o.type!=="shape");
-  objects.unshift({
-    type:"shape",
-    x:250,y:150,w:300,h:120,
+/* ---------- ADD SHAPE (ONLY ONE) ---------- */
+function addShape(type){
+  if(!type) return;
+  objects = objects.filter(o=>!o.isBaseShape);
+
+  let shape={
+    type,
+    x:250,y:140,
+    w:300,h:120,
     color:"#000",
-    rotation:0
-  });
+    rotation:0,
+    isBaseShape:true
+  };
+
+  if(type==="circle"){
+    shape.w=150;
+    shape.h=150;
+    shape.x=325;
+  }
+
+  objects.unshift(shape);
+  selected=shape;
   draw();
 }
 
+/* ---------- ADD TEXT ---------- */
 function addText(){
   const t=prompt("Enter text","Your Name");
   if(!t) return;
@@ -136,26 +216,48 @@ function addText(){
     y:200-h/2,
     w:w,h:h,
     fontSize:36,
+    font:"Poppins",
     color:"#fff",
     rotation:0
   };
+
   objects.push(obj);
   selected=obj;
   draw();
 }
 
+/* ---------- FONT CHANGE ---------- */
+function changeFont(font){
+  if(selected && selected.type==="text"){
+    selected.font=font;
+    ctx.font=`${selected.fontSize}px ${font}`;
+    selected.w=ctx.measureText(selected.text).width+30;
+    draw();
+  }
+}
+
 /* ---------- HIT TEST ---------- */
-function hitHandle(mx,my,o){
-  const hx=o.x+o.w+20;
-  const hy=o.y-20;
-  if(Math.hypot(mx-hx,my-hy)<10) return "rotate";
+function hit(mx,my,o){
+  const cx=o.x+o.w/2;
+  const cy=o.y+o.h/2;
 
-  const dx=o.x-20,dy=o.y-20;
-  if(Math.hypot(mx-dx,my-dy)<10) return "delete";
+  // rotate
+  if(dist(mx,my,o.x+o.w+ROTATE_OFFSET,o.y-ROTATE_OFFSET)<HANDLE_R*2) return "rotate";
 
-  if(mx>o.x+o.w-HANDLE && my>o.y+o.h-HANDLE) return "resize";
+  // delete
+  if(dist(mx,my,o.x-ROTATE_OFFSET,o.y-ROTATE_OFFSET)<HANDLE_R*2) return "delete";
+
+  // resize
+  if(dist(mx,my,o.x+o.w,o.y+o.h)<HANDLE_R*2) return "resize";
+
+  // move
   if(mx>o.x && mx<o.x+o.w && my>o.y && my<o.y+o.h) return "move";
+
   return null;
+}
+
+function dist(x1,y1,x2,y2){
+  return Math.hypot(x1-x2,y1-y2);
 }
 
 /* ---------- EVENTS ---------- */
@@ -165,12 +267,16 @@ canvas.addEventListener("mousedown",e=>{
 
   for(let i=objects.length-1;i>=0;i--){
     const o=objects[i];
-    const h=hitHandle(mx,my,o);
+    const h=hit(mx,my,o);
     if(h){
       selected=o;
       action=h;
       startX=mx; startY=my;
       startAngle=Math.atan2(my-(o.y+o.h/2),mx-(o.x+o.w/2))-o.rotation;
+      if(h==="delete"){
+        objects=objects.filter(x=>x!==o);
+        selected=null;
+      }
       break;
     }
   }
@@ -205,13 +311,13 @@ canvas.addEventListener("mousemove",e=>{
 
 canvas.addEventListener("mouseup",()=>action=null);
 
-/* ---------- DOUBLE CLICK EDIT ---------- */
-canvas.addEventListener("dblclick",e=>{
+/* ---------- DOUBLE CLICK TEXT EDIT ---------- */
+canvas.addEventListener("dblclick",()=>{
   if(selected && selected.type==="text"){
     const t=prompt("Edit text",selected.text);
     if(t){
       selected.text=t;
-      ctx.font=`${selected.fontSize}px Poppins`;
+      ctx.font=`${selected.fontSize}px ${selected.font}`;
       selected.w=ctx.measureText(t).width+30;
     }
     draw();
