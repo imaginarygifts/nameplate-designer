@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Nameplate Designer – Stable Core</title>
+<title>Nameplate Designer – Stable + Rotate</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins&family=Montserrat&family=Playfair+Display&family=Great+Vibes&family=Dancing+Script&display=swap" rel="stylesheet">
 
@@ -22,6 +22,7 @@ select,button{padding:6px 10px;font-size:14px;}
 canvas{
   background:#fff;border:2px solid #000;
   display:block;margin:15px auto;
+  touch-action:none;
 }
 </style>
 </head>
@@ -63,19 +64,30 @@ const colorsDiv = document.getElementById("colors");
 
 let objects = [];
 let selected = null;
-let dragging = false;
-let resizing = false;
-let sx=0, sy=0;
+let mode = null; // move | resize | rotate
+let sx=0, sy=0, startAngle=0;
 
 const COLORS = ["#000","#fff","#5a3a22","#f7f4e9","#e74c3c","#3498db","#2ecc71"];
 
-/* ---------------- DRAW ---------------- */
+/* ---------- HELPERS ---------- */
+function getPos(e){
+  const r = canvas.getBoundingClientRect();
+  const t = e.touches ? e.touches[0] : e;
+  return {
+    x:(t.clientX-r.left)*(canvas.width/r.width),
+    y:(t.clientY-r.top)*(canvas.height/r.height)
+  };
+}
+
+/* ---------- DRAW ---------- */
 function draw(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
   objects.forEach(o=>{
     ctx.save();
-    ctx.translate(o.x,o.y);
+    ctx.translate(o.x + o.w/2, o.y + o.h/2);
+    ctx.rotate(o.rotation);
+    ctx.translate(-o.w/2, -o.h/2);
 
     ctx.fillStyle = o.color;
 
@@ -88,20 +100,16 @@ function draw(){
       o.h = o.size;
     }
 
-    if(o===selected){
-      ctx.strokeStyle="#1e90ff";
-      ctx.strokeRect(0,0,o.w,o.h);
-      ctx.fillRect(o.w-8,o.h-8,8,8); // resize handle
-    }
+    if(o===selected) drawHandles(o);
 
     ctx.restore();
   });
 }
 
-/* ---------------- SHAPES ---------------- */
+/* ---------- SHAPES ---------- */
 function drawShape(o){
-  ctx.beginPath();
   const w=o.w,h=o.h;
+  ctx.beginPath();
   if(o.shape==="rect") ctx.rect(0,0,w,h);
   if(o.shape==="rounded") roundRect(0,0,w,h,20);
   if(o.shape==="circle") ctx.arc(w/2,h/2,w/2,0,Math.PI*2);
@@ -129,14 +137,30 @@ function roundRect(x,y,w,h,r){
   ctx.arcTo(x,y,x+w,y,r);
 }
 
-/* ---------------- ADD ---------------- */
+/* ---------- HANDLES ---------- */
+function drawHandles(o){
+  ctx.strokeStyle="#1e90ff";
+  ctx.strokeRect(0,0,o.w,o.h);
+
+  // resize
+  ctx.fillRect(o.w-8,o.h-8,8,8);
+
+  // rotate handle (top-right)
+  ctx.beginPath();
+  ctx.arc(o.w+14,-14,8,0,Math.PI*2);
+  ctx.fillStyle="#fff";
+  ctx.fill();
+  ctx.stroke();
+}
+
+/* ---------- ADD ---------- */
 function addShape(s){
   if(!s) return;
   objects = objects.filter(o=>o.type!=="shape");
   selected = {
     type:"shape",shape:s,
     x:250,y:150,w:350,h:150,
-    color:"#000"
+    rotation:0,color:"#000"
   };
   objects.unshift(selected);
   showColors();
@@ -150,7 +174,7 @@ function addText(){
     type:"text",text:t,
     x:300,y:200,
     size:40,font:"Poppins",
-    color:"#000",w:0,h:0
+    rotation:0,color:"#000",w:0,h:0
   };
   objects.push(selected);
   showColors();
@@ -164,7 +188,7 @@ function changeFont(f){
   }
 }
 
-/* ---------------- COLORS ---------------- */
+/* ---------- COLORS ---------- */
 function showColors(){
   colorsDiv.innerHTML="";
   COLORS.forEach(c=>{
@@ -177,56 +201,83 @@ function showColors(){
   colorsDiv.style.display="block";
 }
 
-/* ---------------- EVENTS ---------------- */
-canvas.onmousedown = e=>{
-  const r = canvas.getBoundingClientRect();
-  const mx = e.clientX-r.left;
-  const my = e.clientY-r.top;
-  selected = null;
+/* ---------- EVENTS (MOUSE + TOUCH) ---------- */
+canvas.onmousedown = canvas.ontouchstart = e=>{
+  e.preventDefault();
+  const p = getPos(e);
+  selected=null; mode=null;
 
   for(let i=objects.length-1;i>=0;i--){
     const o=objects[i];
-    if(mx>o.x && mx<o.x+o.w && my>o.y && my<o.y+o.h){
+
+    const cx=o.x+o.w/2;
+    const cy=o.y+o.h/2;
+
+    const dx=p.x-cx;
+    const dy=p.y-cy;
+    const cos=Math.cos(-o.rotation);
+    const sin=Math.sin(-o.rotation);
+    const rx=cos*dx-sin*dy+o.w/2;
+    const ry=sin*dx+cos*dy+o.h/2;
+
+    // rotate handle
+    if(Math.hypot(rx-(o.w+14),ry+14)<8){
       selected=o;
-      sx=mx; sy=my;
-      resizing = (mx>o.x+o.w-8 && my>o.y+o.h-8);
-      dragging = !resizing;
-      showColors();
+      mode="rotate";
+      startAngle=Math.atan2(p.y-cy,p.x-cx)-o.rotation;
+      break;
+    }
+
+    // resize
+    if(rx>o.w-8 && ry>o.h-8){
+      selected=o;
+      mode="resize";
+      break;
+    }
+
+    // move
+    if(rx>0 && rx<o.w && ry>0 && ry<o.h){
+      selected=o;
+      mode="move";
+      sx=p.x; sy=p.y;
       break;
     }
   }
   draw();
 };
 
-canvas.onmousemove = e=>{
-  if(!selected) return;
-  const r = canvas.getBoundingClientRect();
-  const mx = e.clientX-r.left;
-  const my = e.clientY-r.top;
+canvas.onmousemove = canvas.ontouchmove = e=>{
+  if(!selected||!mode) return;
+  e.preventDefault();
+  const p = getPos(e);
 
-  if(dragging){
-    selected.x += mx-sx;
-    selected.y += my-sy;
+  if(mode==="move"){
+    selected.x+=p.x-sx;
+    selected.y+=p.y-sy;
+    sx=p.x; sy=p.y;
   }
-  if(resizing){
-    const dw = mx-sx;
-    const dh = my-sy;
-    if(selected.type==="shape"){
-      selected.w += dw;
-      selected.h += dh;
-    }
+
+  if(mode==="resize"){
+    selected.w+=p.x-sx;
+    selected.h+=p.y-sy;
     if(selected.type==="text"){
-      selected.size += dh*0.5;
+      selected.size+= (p.y-sy)*0.5;
       if(selected.size<10) selected.size=10;
     }
+    sx=p.x; sy=p.y;
   }
-  sx=mx; sy=my;
+
+  if(mode==="rotate"){
+    const cx=selected.x+selected.w/2;
+    const cy=selected.y+selected.h/2;
+    selected.rotation=Math.atan2(p.y-cy,p.x-cx)-startAngle;
+  }
+
   draw();
 };
 
-canvas.onmouseup = ()=>{
-  dragging=false;
-  resizing=false;
+canvas.onmouseup = canvas.ontouchend = ()=>{
+  mode=null;
 };
 
 draw();
