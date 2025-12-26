@@ -10,7 +10,7 @@
 <style>
 body{
   margin:0;
-  font-family:Poppins, sans-serif;
+  font-family:Poppins,sans-serif;
   background:#f2f2f2;
 }
 
@@ -31,15 +31,15 @@ select,button{
 #colorPanel{
   display:none;
   background:#fff;
-  padding:10px;
+  padding:8px;
   margin:0 auto;
   width:fit-content;
   border-radius:6px;
 }
 
 .color-swatch{
-  width:26px;
-  height:26px;
+  width:24px;
+  height:24px;
   border-radius:50%;
   display:inline-block;
   margin:4px;
@@ -59,7 +59,6 @@ canvas{
 <body>
 
 <div id="controls">
-  <!-- Shapes -->
   <select onchange="addShape(this.value)">
     <option value="">Choose Shape</option>
     <option value="rect">Rectangle</option>
@@ -74,7 +73,6 @@ canvas{
     <option value="vertical">Vertical Plate</option>
   </select>
 
-  <!-- Fonts -->
   <select onchange="changeFont(this.value)">
     <option value="">Select Font</option>
     <option>Poppins</option>
@@ -93,20 +91,24 @@ canvas{
   <button onclick="exportJPG()">Save JPG</button>
 </div>
 
-<!-- COLOR PANEL -->
 <div id="colorPanel"></div>
 
 <canvas id="canvas" width="800" height="400"></canvas>
 
 <script>
-const canvas=document.getElementById("canvas");
-const ctx=canvas.getContext("2d");
-const colorPanel=document.getElementById("colorPanel");
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+const colorPanel = document.getElementById("colorPanel");
 
-let objects=[], selected=null;
-let action=null, sx=0, sy=0, startAngle=0;
+let objects = [];
+let selected = null;
+let action = null;
+let sx = 0, sy = 0, startAngle = 0;
 
-const COLORS={
+const ICON_R = 10;
+const ICON_OFFSET = 18;
+
+const COLORS = {
   black:"#000000",
   white:"#ffffff",
   brown:"#5a3a22",
@@ -148,14 +150,6 @@ function draw(){
   });
 }
 
-function drawOutline(o){
-  ctx.strokeStyle="#1e90ff";
-  ctx.setLineDash([6,4]);
-  ctx.strokeRect(0,0,o.w,o.h);
-  ctx.setLineDash([]);
-}
-
-/* ---------- SHAPES ---------- */
 function drawShape(o){
   const w=o.w,h=o.h;
   ctx.beginPath();
@@ -167,10 +161,9 @@ function drawShape(o){
   if(o.shape==="arch"){ctx.moveTo(0,h);ctx.lineTo(0,h/2);ctx.arc(w/2,h/2,w/2,Math.PI,0);ctx.lineTo(w,h);}
   if(o.shape==="diamond"){ctx.moveTo(w/2,0);ctx.lineTo(w,h/2);ctx.lineTo(w/2,h);ctx.lineTo(0,h/2);ctx.closePath();}
   if(o.shape==="hexagon"){
-    const r=w/2;
     for(let i=0;i<6;i++){
       const a=Math.PI/3*i;
-      ctx.lineTo(w/2+r*Math.cos(a),h/2+r*Math.sin(a));
+      ctx.lineTo(w/2+(w/2)*Math.cos(a),h/2+(h/2)*Math.sin(a));
     }
     ctx.closePath();
   }
@@ -187,15 +180,74 @@ function roundRect(x,y,w,h,r){
   ctx.arcTo(x,y,x+w,y,r);
 }
 
+/* ---------- SELECTION + ICONS ---------- */
+function drawOutline(o){
+  ctx.strokeStyle="#1e90ff";
+  ctx.setLineDash([6,4]);
+  ctx.strokeRect(0,0,o.w,o.h);
+  ctx.setLineDash([]);
+
+  drawDeleteIcon(-ICON_OFFSET,-ICON_OFFSET);
+  drawRotateIcon(o.w+ICON_OFFSET,-ICON_OFFSET);
+  drawResizeIcon(o.w+ICON_OFFSET,o.h+ICON_OFFSET);
+}
+
+function drawIconBase(x,y){
+  ctx.beginPath();
+  ctx.arc(x,y,ICON_R,0,Math.PI*2);
+  ctx.fillStyle="#fff";
+  ctx.fill();
+  ctx.strokeStyle="#666";
+  ctx.stroke();
+}
+
+function drawDeleteIcon(x,y){
+  drawIconBase(x,y);
+  ctx.strokeStyle="#333";
+  ctx.lineWidth=2;
+  ctx.beginPath();
+  ctx.moveTo(x-4,y-4);
+  ctx.lineTo(x+4,y+4);
+  ctx.moveTo(x+4,y-4);
+  ctx.lineTo(x-4,y+4);
+  ctx.stroke();
+}
+
+function drawRotateIcon(x,y){
+  drawIconBase(x,y);
+  ctx.strokeStyle="#333";
+  ctx.lineWidth=2;
+  ctx.beginPath();
+  ctx.arc(x,y,5,Math.PI*0.25,Math.PI*1.5);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x+3,y-6);
+  ctx.lineTo(x+7,y-6);
+  ctx.lineTo(x+7,y-2);
+  ctx.stroke();
+}
+
+function drawResizeIcon(x,y){
+  drawIconBase(x,y);
+  ctx.strokeStyle="#333";
+  ctx.lineWidth=2;
+  ctx.beginPath();
+  ctx.moveTo(x-5,y+5);
+  ctx.lineTo(x+5,y-5);
+  ctx.moveTo(x+2,y-5);
+  ctx.lineTo(x+5,y-5);
+  ctx.lineTo(x+5,y-2);
+  ctx.stroke();
+}
+
 /* ---------- ADD ---------- */
 function addShape(shape){
   if(!shape) return;
-  objects=objects.filter(o=>o.type!=="shape");
+  objects = objects.filter(o=>o.type!=="shape");
   objects.unshift({
     type:"shape",
     shape,
-    x:250,y:130,
-    w:300,h:140,
+    x:250,y:130,w:300,h:140,
     color:"#000",
     rotation:0
   });
@@ -229,14 +281,13 @@ function updateColorPanel(){
   colorPanel.innerHTML="";
   if(!selected){colorPanel.style.display="none";return;}
 
-  Object.entries(COLORS).forEach(([name,val])=>{
+  Object.values(COLORS).forEach(val=>{
     const d=document.createElement("div");
     d.className="color-swatch";
     d.style.background=val;
     d.onclick=()=>{selected.color=val;draw();}
     colorPanel.appendChild(d);
   });
-
   colorPanel.style.display="block";
 }
 
@@ -250,15 +301,34 @@ function changeFont(f){
   }
 }
 
-/* ---------- INTERACTION ---------- */
+/* ---------- HIT TEST ---------- */
+function dist(x1,y1,x2,y2){return Math.hypot(x1-x2,y1-y2);}
+
+function hit(mx,my,o){
+  if(dist(mx,my,o.x-ICON_OFFSET,o.y-ICON_OFFSET)<ICON_R) return "delete";
+  if(dist(mx,my,o.x+o.w+ICON_OFFSET,o.y-ICON_OFFSET)<ICON_R) return "rotate";
+  if(dist(mx,my,o.x+o.w+ICON_OFFSET,o.y+o.h+ICON_OFFSET)<ICON_R) return "resize";
+  if(mx>o.x && mx<o.x+o.w && my>o.y && my<o.y+o.h) return "move";
+  return null;
+}
+
+/* ---------- EVENTS ---------- */
 canvas.addEventListener("mousedown",e=>{
   const mx=e.offsetX,my=e.offsetY;
-  selected=null;
+  selected=null; action=null;
+
   for(let i=objects.length-1;i>=0;i--){
     const o=objects[i];
-    if(mx>o.x && mx<o.x+o.w && my>o.y && my<o.y+o.h){
+    const h=hit(mx,my,o);
+    if(h){
       selected=o;
-      sx=mx-o.x; sy=my-o.y;
+      action=h;
+      sx=mx; sy=my;
+      startAngle=Math.atan2(my-(o.y+o.h/2),mx-(o.x+o.w/2))-o.rotation;
+      if(h==="delete"){
+        objects=objects.filter(x=>x!==o);
+        selected=null;
+      }
       updateColorPanel();
       break;
     }
@@ -268,9 +338,40 @@ canvas.addEventListener("mousedown",e=>{
 
 canvas.addEventListener("mousemove",e=>{
   if(!selected) return;
-  if(e.buttons){
-    selected.x=e.offsetX-sx;
-    selected.y=e.offsetY-sy;
+  const mx=e.offsetX,my=e.offsetY;
+
+  if(action==="move"){
+    selected.x+=mx-sx;
+    selected.y+=my-sy;
+    sx=mx; sy=my;
+  }
+
+  if(action==="resize"){
+    selected.w+=mx-sx;
+    selected.h+=my-sy;
+    if(selected.type==="text"){
+      selected.fontSize=Math.max(14,selected.h*0.6);
+    }
+    sx=mx; sy=my;
+  }
+
+  if(action==="rotate"){
+    selected.rotation=Math.atan2(my-(selected.y+selected.h/2),mx-(selected.x+selected.w/2))-startAngle;
+  }
+
+  draw();
+});
+
+canvas.addEventListener("mouseup",()=>action=null);
+
+canvas.addEventListener("dblclick",()=>{
+  if(selected && selected.type==="text"){
+    const t=prompt("Edit text",selected.text);
+    if(t){
+      selected.text=t;
+      ctx.font=`${selected.fontSize}px ${selected.font}`;
+      selected.w=ctx.measureText(t).width+30;
+    }
     draw();
   }
 });
