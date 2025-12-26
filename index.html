@@ -58,8 +58,8 @@ canvas{
 
   <button onclick="addText()">Add Text</button>
 
-  <button class="icon-btn" title="Undo" onclick="undo()">⟲</button>
-  <button class="icon-btn" title="Redo" onclick="redo()">⟳</button>
+  <button class="icon-btn" onclick="undo()">⟲</button>
+  <button class="icon-btn" onclick="redo()">⟳</button>
 
   <button id="colorBtn" onclick="toggleColorPanel()" style="display:none;">🎨 Color</button>
   <button onclick="exportJPG()">Save JPG</button>
@@ -78,7 +78,8 @@ let objects=[], selected=null;
 let action=null, sx=0, sy=0, startAngle=0;
 let undoStack=[], redoStack=[];
 
-const ICON_R=10, ICON_OFFSET=18;
+const ICON_R = 10;
+const ICON_OFFSET = 18;
 
 /* ---------- COLORS ---------- */
 const COLORS = [
@@ -103,18 +104,18 @@ function saveState(){
 function undo(){
   if(!undoStack.length) return;
   redoStack.push(JSON.stringify(objects));
-  objects=JSON.parse(undoStack.pop());
+  objects = JSON.parse(undoStack.pop());
   selected=null; hideColor(); draw();
 }
 function redo(){
   if(!redoStack.length) return;
   undoStack.push(JSON.stringify(objects));
-  objects=JSON.parse(redoStack.pop());
+  objects = JSON.parse(redoStack.pop());
   selected=null; hideColor(); draw();
 }
 
-/* ---------- GRADIENTS ---------- */
-function metallicGradient(type,w,h){
+/* ---------- METALLIC GRADIENT ---------- */
+function metallicGradient(type,w){
   const g = ctx.createLinearGradient(0,0,w,0);
   if(type==="gold"){
     g.addColorStop(0,"#7a5c00");
@@ -144,12 +145,12 @@ function draw(){
     ctx.translate(-o.w/2,-o.h/2);
 
     if(o.color?.type==="gradient"){
-      ctx.fillStyle = metallicGradient(o.color.name,o.w,o.h);
+      ctx.fillStyle = metallicGradient(o.color.name,o.w);
     } else {
       ctx.fillStyle = o.color;
     }
 
-    if(o.type==="shape"){ drawShape(o); }
+    if(o.type==="shape") drawShape(o);
     if(o.type==="text"){
       ctx.font=`${o.fontSize}px ${o.font}`;
       ctx.textAlign="center";
@@ -191,12 +192,51 @@ function roundRect(x,y,w,h,r){
   ctx.arcTo(x,y,x+w,y,r);
 }
 
-/* ---------- OUTLINE ---------- */
+/* ---------- OUTLINE + HANDLES (FIXED) ---------- */
 function drawOutline(o){
   ctx.strokeStyle="#1e90ff";
   ctx.setLineDash([6,4]);
   ctx.strokeRect(0,0,o.w,o.h);
   ctx.setLineDash([]);
+
+  drawDeleteIcon(-ICON_OFFSET,-ICON_OFFSET);
+  drawRotateIcon(o.w+ICON_OFFSET,-ICON_OFFSET);
+  drawResizeIcon(o.w+ICON_OFFSET,o.h+ICON_OFFSET);
+}
+
+function drawIconBase(x,y){
+  ctx.beginPath();
+  ctx.arc(x,y,ICON_R,0,Math.PI*2);
+  ctx.fillStyle="#fff";
+  ctx.fill();
+  ctx.strokeStyle="#666";
+  ctx.stroke();
+}
+function drawDeleteIcon(x,y){
+  drawIconBase(x,y);
+  ctx.strokeStyle="#333";ctx.lineWidth=2;
+  ctx.beginPath();
+  ctx.moveTo(x-4,y-4);ctx.lineTo(x+4,y+4);
+  ctx.moveTo(x+4,y-4);ctx.lineTo(x-4,y+4);
+  ctx.stroke();
+}
+function drawRotateIcon(x,y){
+  drawIconBase(x,y);
+  ctx.strokeStyle="#333";ctx.lineWidth=2;
+  ctx.beginPath();
+  ctx.arc(x,y,5,Math.PI*0.25,Math.PI*1.5);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x+3,y-6);ctx.lineTo(x+7,y-6);ctx.lineTo(x+7,y-2);
+  ctx.stroke();
+}
+function drawResizeIcon(x,y){
+  drawIconBase(x,y);
+  ctx.strokeStyle="#333";ctx.lineWidth=2;
+  ctx.beginPath();
+  ctx.moveTo(x-5,y+5);ctx.lineTo(x+5,y-5);
+  ctx.moveTo(x+2,y-5);ctx.lineTo(x+5,y-5);ctx.lineTo(x+5,y-2);
+  ctx.stroke();
 }
 
 /* ---------- ADD ---------- */
@@ -227,12 +267,15 @@ function toggleColorPanel(){
     const d=document.createElement("div");
     d.className="color-swatch";
     d.style.background = c.type==="gradient"
-      ? (c.name==="gold" ? "linear-gradient(90deg,#7a5c00,#fff3b0,#7a5c00)"
-                         : "linear-gradient(90deg,#7d7d7d,#ffffff,#7d7d7d)")
+      ? (c.name==="gold"
+          ? "linear-gradient(90deg,#7a5c00,#fff3b0,#7a5c00)"
+          : "linear-gradient(90deg,#7d7d7d,#ffffff,#7d7d7d)")
       : c.value;
     d.onclick=()=>{
       saveState();
-      selected.color = c.type==="gradient" ? {type:"gradient",name:c.name} : c.value;
+      selected.color = c.type==="gradient"
+        ? {type:"gradient",name:c.name}
+        : c.value;
       colorPanel.style.display="none";
       draw();
     };
@@ -251,6 +294,81 @@ function changeFont(f){
     draw();
   }
 }
+
+/* ---------- HIT TEST ---------- */
+function dist(x1,y1,x2,y2){return Math.hypot(x1-x2,y1-y2);}
+function hit(mx,my,o){
+  if(dist(mx,my,o.x-ICON_OFFSET,o.y-ICON_OFFSET)<ICON_R) return "delete";
+  if(dist(mx,my,o.x+o.w+ICON_OFFSET,o.y-ICON_OFFSET)<ICON_R) return "rotate";
+  if(dist(mx,my,o.x+o.w+ICON_OFFSET,o.y+o.h+ICON_OFFSET)<ICON_R) return "resize";
+  if(mx>o.x&&mx<o.x+o.w&&my>o.y&&my<o.y+o.h) return "move";
+  return null;
+}
+
+/* ---------- EVENTS ---------- */
+canvas.addEventListener("mousedown",e=>{
+  const mx=e.offsetX,my=e.offsetY;
+  selected=null; action=null; hideColor();
+
+  for(let i=objects.length-1;i>=0;i--){
+    const o=objects[i];
+    const h=hit(mx,my,o);
+    if(h){
+      selected=o; action=h;
+      sx=mx; sy=my;
+      startAngle=Math.atan2(my-(o.y+o.h/2),mx-(o.x+o.w/2))-o.rotation;
+      if(h==="delete"){
+        saveState();
+        objects=objects.filter(x=>x!==o);
+        selected=null;
+      }
+      showColor();
+      break;
+    }
+  }
+  draw();
+});
+
+canvas.addEventListener("mousemove",e=>{
+  if(!selected) return;
+  const mx=e.offsetX,my=e.offsetY;
+  if(action==="move"){
+    selected.x+=mx-sx; selected.y+=my-sy;
+    sx=mx; sy=my;
+  }
+  if(action==="resize"){
+    selected.w+=mx-sx; selected.h+=my-sy;
+    if(selected.type==="text"){
+      selected.fontSize=Math.max(14,selected.h*0.6);
+    }
+    sx=mx; sy=my;
+  }
+  if(action==="rotate"){
+    selected.rotation=Math.atan2(
+      my-(selected.y+selected.h/2),
+      mx-(selected.x+selected.w/2)
+    )-startAngle;
+  }
+  draw();
+});
+
+canvas.addEventListener("mouseup",()=>{
+  if(action) saveState();
+  action=null;
+});
+
+canvas.addEventListener("dblclick",()=>{
+  if(selected && selected.type==="text"){
+    saveState();
+    const t=prompt("Edit text",selected.text);
+    if(t){
+      selected.text=t;
+      ctx.font=`${selected.fontSize}px ${selected.font}`;
+      selected.w=ctx.measureText(t).width+30;
+    }
+    draw();
+  }
+});
 
 /* ---------- EXPORT ---------- */
 function exportJPG(){
