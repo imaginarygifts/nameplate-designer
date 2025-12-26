@@ -55,9 +55,12 @@ const ctx = canvas.getContext("2d");
 
 let objects = [];
 let selected = null;
-let dragging = false;
+let mode = null; // move | resize
+let handle = null;
 let offsetX = 0;
 let offsetY = 0;
+
+const HANDLE_SIZE = 8;
 
 /* ---------- DRAW ---------- */
 function draw(){
@@ -66,7 +69,6 @@ function draw(){
   objects.forEach(o=>{
     ctx.save();
 
-    // Move to center for rotation
     ctx.translate(o.x + o.w/2, o.y + o.h/2);
     ctx.rotate(o.rotation);
     ctx.translate(-o.w/2, -o.h/2);
@@ -85,17 +87,59 @@ function draw(){
       ctx.fillText(o.text, o.w/2, o.h/2);
     }
 
-    // Selection outline
+    // Selection
     if(o === selected){
       ctx.strokeStyle = "#1e90ff";
       ctx.lineWidth = 2;
       ctx.setLineDash([6,4]);
       ctx.strokeRect(0,0,o.w,o.h);
       ctx.setLineDash([]);
+
+      drawHandles(o);
     }
 
     ctx.restore();
   });
+}
+
+/* ---------- HANDLES ---------- */
+function drawHandles(o){
+  const points = [
+    {x:0,y:0,name:"tl"},
+    {x:o.w,y:0,name:"tr"},
+    {x:0,y:o.h,name:"bl"},
+    {x:o.w,y:o.h,name:"br"}
+  ];
+
+  ctx.fillStyle = "#1e90ff";
+  points.forEach(p=>{
+    ctx.fillRect(
+      p.x - HANDLE_SIZE/2,
+      p.y - HANDLE_SIZE/2,
+      HANDLE_SIZE,
+      HANDLE_SIZE
+    );
+  });
+}
+
+function getHandle(mx,my,o){
+  const handles = [
+    {x:o.x,y:o.y,name:"tl"},
+    {x:o.x+o.w,y:o.y,name:"tr"},
+    {x:o.x,y:o.y+o.h,name:"bl"},
+    {x:o.x+o.w,y:o.y+o.h,name:"br"}
+  ];
+  for(let h of handles){
+    if(
+      mx > h.x-HANDLE_SIZE &&
+      mx < h.x+HANDLE_SIZE &&
+      my > h.y-HANDLE_SIZE &&
+      my < h.y+HANDLE_SIZE
+    ){
+      return h.name;
+    }
+  }
+  return null;
 }
 
 /* ---------- ADD OBJECTS ---------- */
@@ -120,23 +164,32 @@ function addText(){
     x:250,y:170,
     w:300,h:80,
     size:36,
-    color:"#fff",
+    color:"#000",
     rotation:0
   });
   draw();
 }
 
-/* ---------- MOUSE INTERACTION ---------- */
+/* ---------- MOUSE EVENTS ---------- */
 canvas.addEventListener("mousedown",(e)=>{
   const mx = e.offsetX;
   const my = e.offsetY;
   selected = null;
+  mode = null;
+  handle = null;
 
-  for(let i = objects.length - 1; i >= 0; i--){
+  for(let i = objects.length-1; i>=0; i--){
     const o = objects[i];
-    if(mx > o.x && mx < o.x + o.w && my > o.y && my < o.y + o.h){
+    const h = getHandle(mx,my,o);
+    if(h){
       selected = o;
-      dragging = true;
+      mode = "resize";
+      handle = h;
+      break;
+    }
+    if(mx>o.x && mx<o.x+o.w && my>o.y && my<o.y+o.h){
+      selected = o;
+      mode = "move";
       offsetX = mx - o.x;
       offsetY = my - o.y;
       break;
@@ -146,39 +199,69 @@ canvas.addEventListener("mousedown",(e)=>{
 });
 
 canvas.addEventListener("mousemove",(e)=>{
-  if(!dragging || !selected) return;
-  selected.x = e.offsetX - offsetX;
-  selected.y = e.offsetY - offsetY;
+  if(!selected) return;
+
+  const mx = e.offsetX;
+  const my = e.offsetY;
+
+  if(mode === "move"){
+    selected.x = mx - offsetX;
+    selected.y = my - offsetY;
+  }
+
+  if(mode === "resize"){
+    if(handle === "br"){
+      selected.w = mx - selected.x;
+      selected.h = my - selected.y;
+    }
+    if(handle === "tr"){
+      selected.w = mx - selected.x;
+      selected.h += selected.y - my;
+      selected.y = my;
+    }
+    if(handle === "bl"){
+      selected.w += selected.x - mx;
+      selected.x = mx;
+      selected.h = my - selected.y;
+    }
+    if(handle === "tl"){
+      selected.w += selected.x - mx;
+      selected.h += selected.y - my;
+      selected.x = mx;
+      selected.y = my;
+    }
+  }
   draw();
 });
 
 canvas.addEventListener("mouseup",()=>{
-  dragging = false;
+  mode = null;
+  handle = null;
 });
 
 /* ---------- ACTIONS ---------- */
 function rotateSelected(){
   if(selected){
-    selected.rotation += Math.PI / 12;
+    selected.rotation += Math.PI/12;
     draw();
   }
 }
 
 function deleteSelected(){
   if(!selected) return;
-  objects = objects.filter(o => o !== selected);
+  objects = objects.filter(o=>o!==selected);
   selected = null;
   draw();
 }
 
 function exportJPG(){
-  const link = document.createElement("a");
-  link.download = "design.jpg";
-  link.href = canvas.toDataURL("image/jpeg",1);
+  const link=document.createElement("a");
+  link.download="design.jpg";
+  link.href=canvas.toDataURL("image/jpeg",1);
   link.click();
 }
 
-/* Initial draw */
+/* Init */
 draw();
 </script>
 
