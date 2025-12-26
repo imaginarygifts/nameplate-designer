@@ -4,75 +4,76 @@
 <meta charset="UTF-8">
 <title>Nameplate Designer</title>
 
-<!-- Fabric JS -->
+<!-- Fabric.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
 
+<!-- Google Font -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
 <style>
-@font-face {
-  font-family: "Poppins";
-  src: url("assets/fonts/Poppins-Regular.ttf");
+body{
+  margin:0;
+  font-family:Poppins, sans-serif;
+  background:#f2f2f2;
 }
 
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #f2f2f2;
+/* Canvas */
+#canvasWrap{
+  padding:15px;
+  display:flex;
+  justify-content:center;
 }
 
-#top {
-  padding: 10px;
-  text-align: center;
-  background: #fff;
+canvas{
+  background:#fff;
+  border-radius:10px;
+  box-shadow:0 0 10px rgba(0,0,0,.2);
 }
 
-#canvasWrap {
-  display: flex;
-  justify-content: center;
-  margin: 10px;
-}
-
-canvas {
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0,0,0,.2);
+/* Top bar */
+#top{
+  display:flex;
+  gap:10px;
+  padding:10px;
+  background:#fff;
+  justify-content:center;
 }
 
 /* Bottom toolbar */
-#toolbar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: #111;
-  display: flex;
-  overflow-x: auto;
+#toolbar{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:#111;
+  display:flex;
 }
 
-#toolbar button {
-  flex: 1;
-  padding: 12px;
-  color: #fff;
-  background: none;
-  border: none;
-  font-size: 14px;
+#toolbar button{
+  flex:1;
+  padding:14px;
+  color:#fff;
+  background:none;
+  border:none;
+  font-size:14px;
 }
 
 /* Popup */
-.popup {
-  display: none;
-  position: fixed;
-  bottom: 60px;
-  left: 10px;
-  right: 10px;
-  background: #fff;
-  padding: 10px;
-  border-radius: 10px;
+.popup{
+  display:none;
+  position:fixed;
+  bottom:70px;
+  left:10px;
+  right:10px;
+  background:#fff;
+  padding:10px;
+  border-radius:10px;
 }
 
-.popup button, .popup input {
-  width: 100%;
-  margin: 5px 0;
-  padding: 8px;
+.popup button, .popup input{
+  width:100%;
+  padding:10px;
+  margin:5px 0;
 }
 </style>
 </head>
@@ -90,23 +91,23 @@ canvas {
 
 <!-- POPUPS -->
 <div id="shapePopup" class="popup">
-  <button onclick="addSVG('assets/shapes/rectangle.svg')">Rectangle</button>
-  <button onclick="addSVG('assets/shapes/circle.svg')">Circle</button>
-  <button onclick="addSVG('assets/shapes/square.svg')">square</button>
+  <button onclick="addRect()">Rectangle</button>
+  <button onclick="addCircle()">Circle</button>
 </div>
 
 <div id="textPopup" class="popup">
-  <input id="textValue" placeholder="Enter text">
+  <input id="textInput" placeholder="Enter name">
   <button onclick="addText()">Add Text</button>
 </div>
 
 <div id="logoPopup" class="popup">
-  <button onclick="addSVG('assets/logos/shivji.svg')">shivji</button>
-
+  <button onclick="addImage('https://upload.wikimedia.org/wikipedia/commons/1/17/Om_symbol.svg')">Om</button>
+  <button onclick="addImage('https://upload.wikimedia.org/wikipedia/commons/4/42/Christian_cross.svg')">Cross</button>
 </div>
 
 <div id="bgPopup" class="popup">
-  <button onclick="setBackground('assets/backgrounds/bg1.jpg')">Background 1</button>
+  <button onclick="setBackground('https://images.unsplash.com/photo-1523413651479-597eb2da0ad6')">Wood</button>
+  <button onclick="setBackground('https://images.unsplash.com/photo-1501594907352-04cda38ebc29')">Dark</button>
   <button onclick="removeBackground()">Remove Background</button>
 </div>
 
@@ -125,88 +126,110 @@ canvas {
 
 <script>
 const canvas = new fabric.Canvas('c', {
-  preserveObjectStacking: true
+  preserveObjectStacking:true
 });
 
-function toggle(id) {
-  document.querySelectorAll('.popup').forEach(p => p.style.display = 'none');
-  document.getElementById(id).style.display = 'block';
+/* Popup toggle */
+function toggle(id){
+  document.querySelectorAll('.popup').forEach(p=>p.style.display='none');
+  document.getElementById(id).style.display='block';
 }
 
-/* Load font safely */
-function loadFont(name) {
-  return document.fonts.load(`20px ${name}`);
-}
-
-/* Add text */
-async function addText() {
-  const val = document.getElementById('textValue').value || 'Your Name';
-  await loadFont("Coronet");
-
-  const text = new fabric.Textbox(val, {
-    left: 200,
-    top: 150,
-    fontFamily: 'Coronet',
-    fontSize: 40,
-    fill: '#000'
+/* Shapes */
+function addRect(){
+  const rect = new fabric.Rect({
+    left:200,
+    top:120,
+    width:300,
+    height:120,
+    rx:15,
+    fill:'#000'
   });
+  canvas.add(rect);
+  canvas.setActiveObject(rect);
+}
 
+function addCircle(){
+  const circle = new fabric.Circle({
+    left:250,
+    top:100,
+    radius:80,
+    fill:'#000'
+  });
+  canvas.add(circle);
+  canvas.setActiveObject(circle);
+}
+
+/* Text */
+function addText(){
+  const val = document.getElementById('textInput').value || 'Your Name';
+  const text = new fabric.Textbox(val,{
+    left:250,
+    top:150,
+    fontSize:40,
+    fill:'#fff',
+    fontFamily:'Poppins'
+  });
   canvas.add(text);
   canvas.setActiveObject(text);
 }
 
-/* Add SVG (shape / logo / border) */
-function addSVG(path) {
-  fabric.loadSVGFromURL(path, (objects, options) => {
-    const obj = fabric.util.groupSVGElements(objects, options);
-    obj.set({
-      left: 200,
-      top: 100,
-      scaleX: 0.5,
-      scaleY: 0.5,
-      fill: '#000'
+/* Images (logos / borders) */
+function addImage(url){
+  fabric.Image.fromURL(url, img=>{
+    img.set({
+      left:300,
+      top:150,
+      scaleX:0.2,
+      scaleY:0.2,
+      crossOrigin:'anonymous'
     });
-    canvas.add(obj);
-    canvas.setActiveObject(obj);
+    canvas.add(img);
+    canvas.setActiveObject(img);
   });
 }
 
-/* Change color */
-function changeColor(color) {
+/* Color change */
+function changeColor(color){
   const obj = canvas.getActiveObject();
-  if (!obj) return;
-
-  if (obj.type === 'textbox') {
-    obj.set('fill', color);
-  } else {
-    obj.getObjects().forEach(o => o.set('fill', color));
+  if(!obj) return;
+  if(obj.type === 'textbox'){
+    obj.set('fill',color);
+  }else{
+    obj.set('fill',color);
   }
   canvas.renderAll();
 }
 
-/* Background image */
-function setBackground(path) {
-  fabric.Image.fromURL(path, img => {
+/* Background */
+function setBackground(url){
+  fabric.Image.fromURL(url, img=>{
     img.scaleToWidth(canvas.width);
-    canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas));
+    canvas.setBackgroundImage(img,canvas.renderAll.bind(canvas),{
+      crossOrigin:'anonymous'
+    });
   });
 }
 
-function removeBackground() {
-  canvas.setBackgroundImage(null, canvas.renderAll.bind(canvas));
+function removeBackground(){
+  canvas.setBackgroundImage(null,canvas.renderAll.bind(canvas));
 }
 
 /* Delete */
-function deleteSelected() {
+function deleteSelected(){
   const obj = canvas.getActiveObject();
-  if (obj) canvas.remove(obj);
+  if(obj) canvas.remove(obj);
 }
 
-/* Export JPG */
-function exportJPG() {
-  const link = document.createElement('a');
-  link.download = 'nameplate.jpg';
-  link.href = canvas.toDataURL({ format: 'jpeg', quality: 1 });
+/* Export */
+function exportJPG(){
+  const link=document.createElement('a');
+  link.download='nameplate.jpg';
+  link.href=canvas.toDataURL({
+    format:'jpeg',
+    quality:1,
+    multiplier:2
+  });
   link.click();
 }
 </script>
