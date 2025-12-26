@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Custom Canvas Designer</title>
+<title>Nameplate Designer</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 
@@ -40,7 +40,6 @@ canvas{
 <div id="controls">
   <button onclick="addRect()">Add Shape</button>
   <button onclick="addText()">Add Text</button>
-  <button onclick="addImage()">Add Logo</button>
   <button onclick="rotateSelected()">Rotate</button>
   <button onclick="deleteSelected()">Delete</button>
   <button onclick="exportJPG()">Save JPG</button>
@@ -67,12 +66,12 @@ function draw(){
   objects.forEach(o=>{
     ctx.save();
 
-    // move to center for rotation
+    // Move to center for rotation
     ctx.translate(o.x + o.w/2, o.y + o.h/2);
     ctx.rotate(o.rotation);
     ctx.translate(-o.w/2, -o.h/2);
 
-    // draw object
+    // Draw object
     if(o.type === "rect"){
       ctx.fillStyle = o.color;
       ctx.fillRect(0,0,o.w,o.h);
@@ -81,18 +80,18 @@ function draw(){
     if(o.type === "text"){
       ctx.fillStyle = o.color;
       ctx.font = `${o.size}px Poppins`;
-      ctx.fillText(o.text, 0, o.size);
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(o.text, o.w/2, o.h/2);
     }
 
-    if(o.type === "img"){
-      ctx.drawImage(o.img,0,0,o.w,o.h);
-    }
-
-    // selection outline
+    // Selection outline
     if(o === selected){
-      ctx.strokeStyle = "blue";
+      ctx.strokeStyle = "#1e90ff";
       ctx.lineWidth = 2;
+      ctx.setLineDash([6,4]);
       ctx.strokeRect(0,0,o.w,o.h);
+      ctx.setLineDash([]);
     }
 
     ctx.restore();
@@ -118,33 +117,17 @@ function addText(){
   objects.push({
     type:"text",
     text:txt,
-    x:260,y:200,
-    w:200,h:50,
+    x:250,y:170,
+    w:300,h:80,
     size:36,
-    color:"#000",
+    color:"#fff",
     rotation:0
   });
   draw();
 }
 
-function addImage(){
-  const img = new Image();
-  img.crossOrigin = "anonymous";
-  img.src = "https://upload.wikimedia.org/wikipedia/commons/1/17/Om_symbol.svg";
-  img.onload = ()=>{
-    objects.push({
-      type:"img",
-      img:img,
-      x:350,y:150,
-      w:80,h:80,
-      rotation:0
-    });
-    draw();
-  };
-}
-
 /* ---------- MOUSE INTERACTION ---------- */
-canvas.addEventListener("mousedown", (e)=>{
+canvas.addEventListener("mousedown",(e)=>{
   const mx = e.offsetX;
   const my = e.offsetY;
   selected = null;
@@ -162,14 +145,14 @@ canvas.addEventListener("mousedown", (e)=>{
   draw();
 });
 
-canvas.addEventListener("mousemove", (e)=>{
+canvas.addEventListener("mousemove",(e)=>{
   if(!dragging || !selected) return;
   selected.x = e.offsetX - offsetX;
   selected.y = e.offsetY - offsetY;
   draw();
 });
 
-canvas.addEventListener("mouseup", ()=>{
+canvas.addEventListener("mouseup",()=>{
   dragging = false;
 });
 
