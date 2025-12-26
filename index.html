@@ -46,7 +46,7 @@ canvas{
 <div id="controls">
   <!-- Shape Dropdown -->
   <select onchange="addShape(this.value)">
-    <option value="">Add Shape</option>
+    <option value="">Choose Shape</option>
     <option value="rect">Rectangle</option>
     <option value="rounded">Rounded Rectangle</option>
     <option value="circle">Circle</option>
@@ -65,7 +65,7 @@ canvas{
 
   <button onclick="addText()">Add Text</button>
   <button onclick="rotateSelected()">Rotate</button>
-  <button onclick="deleteSelected()">Delete</button>
+  <button onclick="deleteSelected()">Delete Selected</button>
   <button onclick="exportJPG()">Save JPG</button>
 </div>
 
@@ -103,7 +103,7 @@ function draw(){
     }
 
     if(o.type === "rounded"){
-      roundRect(0,0,o.w,o.h,20,o.color);
+      drawRounded(0,0,o.w,o.h,20,o.color);
     }
 
     if(o.type === "circle"){
@@ -147,7 +147,7 @@ function draw(){
 }
 
 /* ---------- HELPERS ---------- */
-function roundRect(x,y,w,h,r,color){
+function drawRounded(x,y,w,h,r,color){
   ctx.fillStyle=color;
   ctx.beginPath();
   ctx.moveTo(x+r,y);
@@ -188,15 +188,42 @@ function hitHandle(mx,my,o){
   return null;
 }
 
-/* ---------- ADD SHAPE ---------- */
+/* ---------- REMOVE OLD SHAPE ---------- */
+function removeExistingShape(){
+  objects = objects.filter(o => !o.isBaseShape);
+}
+
+/* ---------- ADD SHAPE (ONLY ONE) ---------- */
 function addShape(type){
   if(!type) return;
 
+  // 🔥 KEY FEATURE
+  removeExistingShape();
+
+  let shape;
+
   if(type === "circle"){
-    objects.push({type,x:300,y:130,w:140,h:140,color:"#000",rotation:0});
-  }else{
-    objects.push({type,x:250,y:150,w:300,h:120,color:"#000",rotation:0});
+    shape = {
+      type,
+      x:320,y:120,
+      w:160,h:160,
+      color:"#000",
+      rotation:0,
+      isBaseShape:true
+    };
+  } else {
+    shape = {
+      type,
+      x:250,y:150,
+      w:300,h:120,
+      color:"#000",
+      rotation:0,
+      isBaseShape:true
+    };
   }
+
+  objects.unshift(shape); // keep shape at bottom
+  selected = shape;
   draw();
 }
 
@@ -263,7 +290,7 @@ canvas.addEventListener("mousemove",e=>{
       selected.x=mx; selected.y=my;
     }
 
-    // 🔥 KEY FIX: resize text font with box
+    // resize text font
     if(selected.type==="text"){
       selected.fontSize = Math.max(12, selected.h * 0.6);
     }
@@ -280,7 +307,7 @@ function rotateSelected(){
 
 function deleteSelected(){
   if(!selected) return;
-  objects=objects.filter(o=>o!==selected);
+  objects = objects.filter(o=>o!==selected);
   selected=null;
   draw();
 }
