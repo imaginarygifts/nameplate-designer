@@ -15,15 +15,6 @@ body{margin:0;font-family:Poppins;background:#f2f2f2;}
 }
 select,button{padding:6px 10px;font-size:14px;}
 .icon-btn{font-size:18px;border:1px solid #ccc;border-radius:6px;background:#fff;}
-#colorPanel{
-  display:none;background:#fff;padding:8px;
-  margin:5px auto;border-radius:6px;
-}
-.color-swatch{
-  width:26px;height:26px;border-radius:50%;
-  display:inline-block;margin:4px;
-  border:1px solid #999;cursor:pointer;
-}
 canvas{
   background:#fff;border:2px solid #333;
   display:block;margin:15px auto;
@@ -36,7 +27,7 @@ canvas{
 
 <div id="controls">
   <select onchange="addShape(this.value)">
-    <option value="">Choose Shape</option>
+    <option value="">Shape</option>
     <option value="rect">Rectangle</option>
     <option value="rounded">Rounded</option>
     <option value="pill">Pill</option>
@@ -62,7 +53,7 @@ canvas{
   </select>
 
   <select onchange="changeFont(this.value)">
-    <option value="">Select Font</option>
+    <option value="">Font</option>
     <option>Poppins</option>
     <option>Montserrat</option>
     <option>Playfair Display</option>
@@ -78,24 +69,21 @@ canvas{
   <button onclick="addText()">Add Text</button>
   <button class="icon-btn" onclick="undo()">⟲</button>
   <button class="icon-btn" onclick="redo()">⟳</button>
-  <button id="colorBtn" onclick="toggleColorPanel()" style="display:none;">🎨 Color</button>
   <button onclick="exportJPG()">Save JPG</button>
 </div>
 
-<div id="colorPanel"></div>
 <canvas id="canvas" width="900" height="450"></canvas>
 
 <script>
 const canvas=document.getElementById("canvas");
 const ctx=canvas.getContext("2d");
-const colorPanel=document.getElementById("colorPanel");
-const colorBtn=document.getElementById("colorBtn");
 
 let objects=[],selected=null;
 let action=null,sx=0,sy=0,startAngle=0;
 let undoStack=[],redoStack=[];
 
-const ICON_R=10, ICON_OFFSET=18;
+const ICON_R=10;
+const HANDLE_OFFSET=18;
 
 const LOGOS={
   om:"https://www.svgrepo.com/show/475656/om.svg",
@@ -108,26 +96,9 @@ const LOGOS={
   house:"https://www.svgrepo.com/show/475651/home.svg"
 };
 
-const COLORS=[
- {type:"solid",v:"#000"},
- {type:"solid",v:"#fff"},
- {type:"solid",v:"#5a3a22"},
- {type:"solid",v:"#f7f4e9"},
- {type:"solid",v:"#e74c3c"},
- {type:"solid",v:"#3498db"},
- {type:"solid",v:"#2ecc71"},
- {type:"gradient",name:"gold",css:"linear-gradient(90deg,#7a5c00,#fff3b0,#7a5c00)"},
- {type:"gradient",name:"silver",css:"linear-gradient(90deg,#7d7d7d,#ffffff,#7d7d7d)"},
- {type:"gradient",name:"rosegold",css:"linear-gradient(90deg,#8b5a5a,#f3c1c1,#8b5a5a)"}
-];
-
-function metallicGradient(name,w){
- const g=ctx.createLinearGradient(0,0,w,0);
- if(name==="gold"){g.addColorStop(0,"#7a5c00");g.addColorStop(.5,"#fff3b0");g.addColorStop(1,"#7a5c00");}
- if(name==="silver"){g.addColorStop(0,"#7d7d7d");g.addColorStop(.5,"#ffffff");g.addColorStop(1,"#7d7d7d");}
- if(name==="rosegold"){g.addColorStop(0,"#8b5a5a");g.addColorStop(.5,"#f3c1c1");g.addColorStop(1,"#8b5a5a");}
- return g;
-}
+function saveState(){undoStack.push(JSON.stringify(objects));redoStack=[];}
+function undo(){if(!undoStack.length)return;redoStack.push(JSON.stringify(objects));objects=JSON.parse(undoStack.pop());selected=null;draw();}
+function redo(){if(!redoStack.length)return;undoStack.push(JSON.stringify(objects));objects=JSON.parse(redoStack.pop());selected=null;draw();}
 
 function getPos(e){
  const r=canvas.getBoundingClientRect();
@@ -136,44 +107,42 @@ function getPos(e){
          y:(t.clientY-r.top)*(canvas.height/r.height)};
 }
 
-function saveState(){undoStack.push(JSON.stringify(objects));redoStack=[];}
-function undo(){if(!undoStack.length)return;redoStack.push(JSON.stringify(objects));objects=JSON.parse(undoStack.pop());selected=null;draw();}
-function redo(){if(!redoStack.length)return;undoStack.push(JSON.stringify(objects));objects=JSON.parse(redoStack.pop());selected=null;draw();}
-
 function draw(){
  ctx.clearRect(0,0,canvas.width,canvas.height);
+
  objects.forEach(o=>{
   ctx.save();
   ctx.translate(o.x+o.w/2,o.y+o.h/2);
   ctx.rotate(o.rotation);
   ctx.translate(-o.w/2,-o.h/2);
 
-  if(o.color?.type==="gradient") ctx.fillStyle=metallicGradient(o.color.name,o.w);
-  else ctx.fillStyle=o.color;
-
   if(o.type==="shape"){drawShape(o);}
   if(o.type==="text"){
-   ctx.font=`${o.fontSize}px ${o.font}`;
-   ctx.textAlign="center";
-   ctx.textBaseline="middle";
-   ctx.fillText(o.text,o.w/2,o.h/2);
+    ctx.font=`${o.fontSize}px ${o.font}`;
+    ctx.textAlign="center";
+    ctx.textBaseline="middle";
+    ctx.fillText(o.text,o.w/2,o.h/2);
   }
   if(o.type==="logo"){
-   ctx.drawImage(o.img,0,0,o.w,o.h);
+    ctx.drawImage(o.img,0,0,o.w,o.h);
   }
 
   if(o===selected){
-   ctx.strokeStyle="#1e90ff";
-   ctx.setLineDash([6,4]);
-   ctx.strokeRect(0,0,o.w,o.h);
-   ctx.setLineDash([]);
-
-   drawHandle(o.x-ICON_OFFSET,o.y-ICON_OFFSET,"×");
-   drawHandle(o.x+o.w+ICON_OFFSET,o.y-ICON_OFFSET,"↻");
-   drawHandle(o.x+o.w+ICON_OFFSET,o.y+o.h+ICON_OFFSET,"↔");
+    drawHandles(o);
   }
   ctx.restore();
  });
+}
+
+function drawHandles(o){
+ ctx.strokeStyle="#1e90ff";
+ ctx.setLineDash([6,4]);
+ ctx.strokeRect(0,0,o.w,o.h);
+ ctx.setLineDash([]);
+
+ drawHandle(-HANDLE_OFFSET,-HANDLE_OFFSET,"×");
+ drawHandle(o.w+HANDLE_OFFSET,-HANDLE_OFFSET,"↻");
+ drawHandle(o.w+HANDLE_OFFSET,o.h+HANDLE_OFFSET,"↔");
 }
 
 function drawHandle(x,y,t){
@@ -184,37 +153,72 @@ function drawHandle(x,y,t){
  ctx.fillText(t,x-4,y+4);
 }
 
-/* SHAPES */
-function drawShape(o){
- const w=o.w,h=o.h;
- ctx.beginPath();
- if(o.shape==="rect") ctx.rect(0,0,w,h);
- if(o.shape==="rounded") roundRect(0,0,w,h,25);
- if(o.shape==="pill") roundRect(0,0,w,h,h/2);
- if(o.shape==="circle") ctx.arc(w/2,h/2,w/2,0,Math.PI*2);
- if(o.shape==="oval") ctx.ellipse(w/2,h/2,w/2,h/2,0,0,Math.PI*2);
- if(o.shape==="arch"){ctx.moveTo(0,h);ctx.lineTo(0,h/2);ctx.arc(w/2,h/2,w/2,Math.PI,0);ctx.lineTo(w,h);}
- if(o.shape==="diamond"){ctx.moveTo(w/2,0);ctx.lineTo(w,h/2);ctx.lineTo(w/2,h);ctx.lineTo(0,h/2);ctx.closePath();}
- if(o.shape==="hexagon"){for(let i=0;i<6;i++){const a=Math.PI/3*i;ctx.lineTo(w/2+(w/2)*Math.cos(a),h/2+(h/2)*Math.sin(a));}ctx.closePath();}
- if(o.shape==="shield"){ctx.moveTo(0,0);ctx.lineTo(w,0);ctx.lineTo(w,h*0.6);ctx.lineTo(w/2,h);ctx.lineTo(0,h*0.6);ctx.closePath();}
- if(o.shape==="vertical") ctx.rect(0,0,w,h);
- ctx.fill();
+function hitHandle(px,py,hx,hy){
+ return Math.hypot(px-hx,py-hy)<=ICON_R;
 }
 
-function roundRect(x,y,w,h,r){
- ctx.moveTo(x+r,y);
- ctx.arcTo(x+w,y,x+w,y+h,r);
- ctx.arcTo(x+w,y+h,x,y+h,r);
- ctx.arcTo(x,y+h,x,y,r);
- ctx.arcTo(x,y,x+w,y,r);
+function pointerDown(e){
+ e.preventDefault();
+ const p=getPos(e);
+ selected=null;action=null;
+
+ for(let i=objects.length-1;i>=0;i--){
+  const o=objects[i];
+  const cx=o.x+o.w/2, cy=o.y+o.h/2;
+  const dx=p.x-cx, dy=p.y-cy;
+  const rx=Math.cos(-o.rotation)*dx-Math.sin(-o.rotation)*dy+o.w/2;
+  const ry=Math.sin(-o.rotation)*dx+Math.cos(-o.rotation)*dy+o.h/2;
+
+  if(hitHandle(rx,ry,-HANDLE_OFFSET,-HANDLE_OFFSET)){saveState();objects.splice(i,1);draw();return;}
+  if(hitHandle(rx,ry,o.w+HANDLE_OFFSET,-HANDLE_OFFSET)){selected=o;action="rotate";}
+  else if(hitHandle(rx,ry,o.w+HANDLE_OFFSET,o.h+HANDLE_OFFSET)){selected=o;action="resize";}
+  else if(rx>0&&rx<o.w&&ry>0&&ry<o.h){selected=o;action="move";}
+
+  if(action){
+    sx=p.x;sy=p.y;
+    startAngle=Math.atan2(p.y-cy,p.x-cx)-o.rotation;
+    draw();return;
+  }
+ }
+ draw();
+}
+
+function pointerMove(e){
+ if(!selected)return;
+ e.preventDefault();
+ const p=getPos(e);
+
+ if(action==="move"){selected.x+=p.x-sx;selected.y+=p.y-sy;}
+ if(action==="resize"){selected.w+=p.x-sx;selected.h+=p.y-sy;}
+ if(action==="rotate"){
+  const cx=selected.x+selected.w/2;
+  const cy=selected.y+selected.h/2;
+  selected.rotation=Math.atan2(p.y-cy,p.x-cx)-startAngle;
+ }
+ sx=p.x;sy=p.y;
+ draw();
+}
+
+function pointerUp(){if(action)saveState();action=null;}
+
+canvas.addEventListener("mousedown",pointerDown);
+canvas.addEventListener("mousemove",pointerMove);
+canvas.addEventListener("mouseup",pointerUp);
+canvas.addEventListener("touchstart",pointerDown,{passive:false});
+canvas.addEventListener("touchmove",pointerMove,{passive:false});
+canvas.addEventListener("touchend",pointerUp);
+
+/* SHAPES */
+function drawShape(o){
+ ctx.fillRect(0,0,o.w,o.h);
 }
 
 function addShape(s){
  if(!s)return;
  saveState();
  objects=objects.filter(o=>o.type!=="shape");
- objects.unshift({type:"shape",shape:s,x:250,y:150,w:350,h:150,color:{type:"solid",v:"#000"},rotation:0});
- selected=objects[0];showColor();draw();
+ objects.unshift({type:"shape",x:250,y:150,w:350,h:150,rotation:0});
+ selected=objects[0];draw();
 }
 
 function addText(){
@@ -223,8 +227,8 @@ function addText(){
  saveState();
  ctx.font="40px Poppins";
  const w=ctx.measureText(t).width+30;
- objects.push({type:"text",text:t,x:450-w/2,y:220,w,h:70,fontSize:40,font:"Poppins",color:{type:"solid",v:"#000"},rotation:0});
- selected=objects.at(-1);showColor();draw();
+ objects.push({type:"text",text:t,x:450-w/2,y:220,w,h:70,fontSize:40,font:"Poppins",rotation:0});
+ selected=objects.at(-1);draw();
 }
 
 function addLogo(l){
@@ -233,23 +237,10 @@ function addLogo(l){
  img.crossOrigin="anonymous";
  img.onload=()=>{
   saveState();
-  objects.push({type:"logo",img,x:420,y:180,w:80,h:80,color:{type:"solid",v:"#000"},rotation:0});
-  selected=objects.at(-1);showColor();draw();
+  objects.push({type:"logo",img,x:430,y:180,w:80,h:80,rotation:0});
+  selected=objects.at(-1);draw();
  };
  img.src=LOGOS[l];
-}
-
-function showColor(){colorBtn.style.display="inline-block";}
-function toggleColorPanel(){
- colorPanel.innerHTML="";
- COLORS.forEach(c=>{
-  const d=document.createElement("div");
-  d.className="color-swatch";
-  d.style.background=c.type==="gradient"?c.css:c.v;
-  d.onclick=()=>{saveState();selected.color=c;draw();colorPanel.style.display="none";}
-  colorPanel.appendChild(d);
- });
- colorPanel.style.display="block";
 }
 
 function changeFont(f){
