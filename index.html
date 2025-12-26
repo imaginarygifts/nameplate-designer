@@ -44,16 +44,14 @@ canvas{
 <body>
 
 <div id="controls">
-  <!-- Shape Dropdown -->
   <select onchange="addShape(this.value)">
     <option value="">Choose Shape</option>
     <option value="rect">Rectangle</option>
-    <option value="rounded">Rounded Rectangle</option>
+    <option value="rounded">Rounded</option>
     <option value="circle">Circle</option>
     <option value="arch">Arch</option>
   </select>
 
-  <!-- Font Dropdown -->
   <select onchange="changeFont(this.value)">
     <option value="">Select Font</option>
     <option value="Poppins">Poppins</option>
@@ -64,8 +62,7 @@ canvas{
   </select>
 
   <button onclick="addText()">Add Text</button>
-  <button onclick="rotateSelected()">Rotate</button>
-  <button onclick="deleteSelected()">Delete Selected</button>
+  <button onclick="deleteSelected()">Delete</button>
   <button onclick="exportJPG()">Save JPG</button>
 </div>
 
@@ -83,8 +80,10 @@ let mode = null;
 let handle = null;
 let offsetX = 0;
 let offsetY = 0;
+let startAngle = 0;
 
 const HANDLE = 8;
+const ROTATE_HANDLE_OFFSET = 25;
 
 /* ---------- DRAW ---------- */
 function draw(){
@@ -98,7 +97,7 @@ function draw(){
 
     // SHAPES
     if(o.type === "rect"){
-      ctx.fillStyle = o.color;
+      ctx.fillStyle=o.color;
       ctx.fillRect(0,0,o.w,o.h);
     }
 
@@ -107,14 +106,14 @@ function draw(){
     }
 
     if(o.type === "circle"){
-      ctx.fillStyle = o.color;
+      ctx.fillStyle=o.color;
       ctx.beginPath();
       ctx.arc(o.w/2,o.h/2,o.w/2,0,Math.PI*2);
       ctx.fill();
     }
 
     if(o.type === "arch"){
-      ctx.fillStyle = o.color;
+      ctx.fillStyle=o.color;
       ctx.beginPath();
       ctx.moveTo(0,o.h);
       ctx.lineTo(0,o.h/2);
@@ -125,21 +124,22 @@ function draw(){
     }
 
     // TEXT
-    if(o.type === "text"){
-      ctx.fillStyle = o.color;
-      ctx.font = `${o.fontSize}px ${o.font}`;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
+    if(o.type==="text"){
+      ctx.fillStyle=o.color;
+      ctx.font=`${o.fontSize}px ${o.font}`;
+      ctx.textAlign="center";
+      ctx.textBaseline="middle";
       ctx.fillText(o.text,o.w/2,o.h/2);
     }
 
     // SELECTION
-    if(o === selected){
+    if(o===selected){
       ctx.strokeStyle="#1e90ff";
       ctx.setLineDash([6,4]);
       ctx.strokeRect(0,0,o.w,o.h);
       ctx.setLineDash([]);
       drawHandles(o);
+      drawRotateHandle(o);
     }
 
     ctx.restore();
@@ -163,108 +163,111 @@ function drawRounded(x,y,w,h,r,color){
 }
 
 function drawHandles(o){
-  const pts=[
-    {x:0,y:0},{x:o.w,y:0},
-    {x:0,y:o.h},{x:o.w,y:o.h}
-  ];
+  const pts=[[0,0],[o.w,0],[0,o.h],[o.w,o.h]];
   ctx.fillStyle="#1e90ff";
   pts.forEach(p=>{
-    ctx.fillRect(p.x-HANDLE/2,p.y-HANDLE/2,HANDLE,HANDLE);
+    ctx.fillRect(p[0]-HANDLE/2,p[1]-HANDLE/2,HANDLE,HANDLE);
   });
 }
 
-function hitHandle(mx,my,o){
-  const h=[
-    {x:o.x,y:o.y,n:"tl"},
-    {x:o.x+o.w,y:o.y,n:"tr"},
-    {x:o.x,y:o.y+o.h,n:"bl"},
-    {x:o.x+o.w,y:o.y+o.h,n:"br"}
-  ];
-  for(let p of h){
-    if(mx>p.x-HANDLE && mx<p.x+HANDLE && my>p.y-HANDLE && my<p.y+HANDLE){
-      return p.n;
-    }
-  }
-  return null;
+function drawRotateHandle(o){
+  ctx.beginPath();
+  ctx.arc(o.w/2,-ROTATE_HANDLE_OFFSET,6,0,Math.PI*2);
+  ctx.fillStyle="#1e90ff";
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(o.w/2,0);
+  ctx.lineTo(o.w/2,-ROTATE_HANDLE_OFFSET);
+  ctx.stroke();
 }
 
-/* ---------- REMOVE OLD SHAPE ---------- */
-function removeExistingShape(){
-  objects = objects.filter(o => !o.isBaseShape);
+/* ---------- SHAPE ---------- */
+function removeBaseShape(){
+  objects=objects.filter(o=>!o.isBaseShape);
 }
 
-/* ---------- ADD SHAPE (ONLY ONE) ---------- */
 function addShape(type){
   if(!type) return;
+  removeBaseShape();
 
-  // 🔥 KEY FEATURE
-  removeExistingShape();
+  let shape={
+    type,
+    x:250,y:150,
+    w:300,h:120,
+    color:"#000",
+    rotation:0,
+    isBaseShape:true
+  };
 
-  let shape;
-
-  if(type === "circle"){
-    shape = {
-      type,
-      x:320,y:120,
-      w:160,h:160,
-      color:"#000",
-      rotation:0,
-      isBaseShape:true
-    };
-  } else {
-    shape = {
-      type,
-      x:250,y:150,
-      w:300,h:120,
-      color:"#000",
-      rotation:0,
-      isBaseShape:true
-    };
+  if(type==="circle"){
+    shape.w=150;
+    shape.h=150;
+    shape.x=325;
   }
 
-  objects.unshift(shape); // keep shape at bottom
-  selected = shape;
+  objects.unshift(shape);
+  selected=shape;
   draw();
 }
 
-/* ---------- ADD TEXT ---------- */
+/* ---------- TEXT ---------- */
 function addText(){
-  const t = prompt("Enter text","Your Name");
+  const t=prompt("Enter text","Your Name");
   if(!t) return;
 
-  objects.push({
+  ctx.font="36px Poppins";
+  const width=ctx.measureText(t).width+30;
+  const height=36+20;
+
+  const textObj={
     type:"text",
     text:t,
-    x:270,y:160,
-    w:260,h:80,
+    x:400-width/2,
+    y:200-height/2,
+    w:width,
+    h:height,
     fontSize:36,
     font:"Poppins",
     color:"#fff",
     rotation:0
-  });
+  };
+
+  objects.push(textObj);
+  selected=textObj;
   draw();
 }
 
-/* ---------- FONT CHANGE ---------- */
 function changeFont(font){
   if(selected && selected.type==="text"){
-    selected.font = font;
+    selected.font=font;
+    ctx.font=`${selected.fontSize}px ${font}`;
+    selected.w=ctx.measureText(selected.text).width+30;
     draw();
   }
 }
 
-/* ---------- MOUSE ---------- */
+/* ---------- INTERACTION ---------- */
 canvas.addEventListener("mousedown",e=>{
   const mx=e.offsetX,my=e.offsetY;
   selected=null; mode=null;
 
   for(let i=objects.length-1;i>=0;i--){
     const o=objects[i];
-    const h=hitHandle(mx,my,o);
-    if(h){ selected=o; mode="resize"; handle=h; break; }
+    const cx=o.x+o.w/2;
+    const cy=o.y-ROTATE_HANDLE_OFFSET;
+
+    if(Math.hypot(mx-cx,my-cy)<10){
+      selected=o;
+      mode="rotate";
+      startAngle=Math.atan2(my-(o.y+o.h/2),mx-(o.x+o.w/2))-o.rotation;
+      break;
+    }
+
     if(mx>o.x && mx<o.x+o.w && my>o.y && my<o.y+o.h){
-      selected=o; mode="move";
-      offsetX=mx-o.x; offsetY=my-o.y;
+      selected=o;
+      mode="move";
+      offsetX=mx-o.x;
+      offsetY=my-o.y;
       break;
     }
   }
@@ -280,34 +283,18 @@ canvas.addEventListener("mousemove",e=>{
     selected.y=my-offsetY;
   }
 
-  if(mode==="resize"){
-    if(handle==="br"){ selected.w=mx-selected.x; selected.h=my-selected.y; }
-    if(handle==="tr"){ selected.w=mx-selected.x; selected.h+=selected.y-my; selected.y=my; }
-    if(handle==="bl"){ selected.w+=selected.x-mx; selected.x=mx; selected.h=my-selected.y; }
-    if(handle==="tl"){
-      selected.w+=selected.x-mx;
-      selected.h+=selected.y-my;
-      selected.x=mx; selected.y=my;
-    }
-
-    // resize text font
-    if(selected.type==="text"){
-      selected.fontSize = Math.max(12, selected.h * 0.6);
-    }
+  if(mode==="rotate"){
+    selected.rotation=Math.atan2(my-(selected.y+selected.h/2),mx-(selected.x+selected.w/2))-startAngle;
   }
   draw();
 });
 
-canvas.addEventListener("mouseup",()=>{ mode=null; handle=null; });
+canvas.addEventListener("mouseup",()=>{mode=null});
 
 /* ---------- ACTIONS ---------- */
-function rotateSelected(){
-  if(selected){ selected.rotation+=Math.PI/12; draw(); }
-}
-
 function deleteSelected(){
   if(!selected) return;
-  objects = objects.filter(o=>o!==selected);
+  objects=objects.filter(o=>o!==selected);
   selected=null;
   draw();
 }
@@ -319,7 +306,6 @@ function exportJPG(){
   a.click();
 }
 
-/* INIT */
 draw();
 </script>
 
