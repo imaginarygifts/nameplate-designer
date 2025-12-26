@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Nameplate Designer – Bottom Controls</title>
+<title>Nameplate Designer – Square Canvas</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins&family=Montserrat&family=Playfair+Display&family=Great+Vibes&family=Dancing+Script&display=swap" rel="stylesheet">
 
@@ -25,21 +25,22 @@ canvas{
 /* ---------- BOTTOM CONTROLS ---------- */
 #bottom-controls{
   background:#000;
-  padding:12px;
+  padding:14px;
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:12px;
+  gap:14px;
 }
 
+/* buttons & selects */
 #bottom-controls select,
 #bottom-controls button{
   width:100%;
-  padding:14px;
+  padding:16px;
   font-size:16px;
   background:#000;
   color:#f7f4e9; /* ivory */
   border:1px solid #f7f4e9;
-  border-radius:8px;
+  border-radius:10px;
 }
 
 /* ---------- COLOR PANEL ---------- */
@@ -59,13 +60,28 @@ canvas{
   border:1px solid #f7f4e9;
   cursor:pointer;
 }
+
+/* ---------- SAVE BUTTON ---------- */
+#save-btn{
+  width:100%;
+  margin:0;
+  padding:18px;
+  font-size:18px;
+  font-weight:600;
+  background:#000;
+  color:#f7f4e9;
+  border:none;
+  border-top:2px solid #f7f4e9;
+}
 </style>
 </head>
 
 <body>
 
-<canvas id="canvas" width="900" height="450"></canvas>
+<!-- SQUARE CANVAS -->
+<canvas id="canvas" width="600" height="600"></canvas>
 
+<!-- CONTROLS -->
 <div id="bottom-controls">
 
   <!-- ROW 1 -->
@@ -80,9 +96,13 @@ canvas{
     <option value="hexagon">Hexagon</option>
   </select>
 
+  <button id="colorBtn" onclick="toggleColors()" style="display:none;">
+    Select Colour
+  </button>
+
+  <!-- ROW 2 (TEXT + FONT SAME LINE) -->
   <button onclick="addText()">Add Text</button>
 
-  <!-- ROW 2 -->
   <select onchange="changeFont(this.value)">
     <option value="">Select Font</option>
     <option>Poppins</option>
@@ -92,17 +112,16 @@ canvas{
     <option>Dancing Script</option>
   </select>
 
-  <button id="colorBtn" onclick="toggleColors()" style="display:none;">
-    Select Colour
-  </button>
-
-  <!-- COLOR PALETTE FULL WIDTH -->
+  <!-- COLOR PALETTE (FULL WIDTH) -->
   <div id="colors"></div>
 
 </div>
 
+<!-- SAVE BUTTON -->
+<button id="save-btn" onclick="saveImage()">SAVE DESIGN</button>
+
 <script>
-/* ================= EXISTING LOGIC (UNCHANGED) ================= */
+/* ================= LOGIC (UNCHANGED) ================= */
 
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
@@ -112,6 +131,7 @@ const colorBtn = document.getElementById("colorBtn");
 let objects=[], selected=null;
 let mode=null, sx=0, sy=0, startAngle=0;
 
+/* ---------- COLOURS ---------- */
 const PALETTE=[
   {type:"solid", value:"#000"},
   {type:"solid", value:"#fff"},
@@ -133,6 +153,7 @@ function metallicGradient(type,w){
   return g;
 }
 
+/* ---------- HELPERS ---------- */
 function getPos(e){
   const r=canvas.getBoundingClientRect();
   const t=e.touches?e.touches[0]:e;
@@ -171,6 +192,7 @@ function draw(){
   });
 }
 
+/* ---------- SHAPES ---------- */
 function drawShape(o){
   const w=o.w,h=o.h;
   ctx.beginPath();
@@ -211,7 +233,7 @@ function drawHandle(x,y,t){
 function addShape(s){
   if(!s) return;
   objects=objects.filter(o=>o.type!=="shape");
-  selected={type:"shape",shape:s,x:250,y:150,w:350,h:150,rotation:0,colorType:"solid",colorValue:"#000"};
+  selected={type:"shape",shape:s,x:125,y:200,w:350,h:200,rotation:0,colorType:"solid",colorValue:"#000"};
   objects.unshift(selected);
   colorBtn.style.display="block";
   draw();
@@ -219,7 +241,7 @@ function addShape(s){
 function addText(){
   const t=prompt("Text","Your Name");
   if(!t) return;
-  selected={type:"text",text:t,x:300,y:200,size:40,font:"Poppins",rotation:0,colorType:"solid",colorValue:"#000",w:0,h:0};
+  selected={type:"text",text:t,x:150,y:250,size:40,font:"Poppins",rotation:0,colorType:"solid",colorValue:"#000",w:0,h:0};
   objects.push(selected);
   colorBtn.style.display="block";
   draw();
@@ -295,6 +317,14 @@ canvas.onmousemove = canvas.ontouchmove = e=>{
 };
 
 canvas.onmouseup = canvas.ontouchend = ()=>{mode=null;};
+
+/* ---------- SAVE ---------- */
+function saveImage(){
+  const a=document.createElement("a");
+  a.download="design.jpg";
+  a.href=canvas.toDataURL("image/jpeg",1);
+  a.click();
+}
 
 draw();
 </script>
