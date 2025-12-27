@@ -275,7 +275,7 @@ function draw(){
       ctx.fillStyle=["gold","silver","rosegold"].includes(o.color)?metallic(o.color,o.w):o.color;
       ctx.fillText(o.text,0,0);
     }
-if(o.type==="logo" || o.type==="border"){
+    if(o.type==="logo" || o.type==="border"){
   ctx.save();               // 🔒 isolate canvas state
   drawTintedImage(o);
   ctx.restore();            // 🔓 restore background safely
