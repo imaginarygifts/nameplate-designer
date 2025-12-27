@@ -249,7 +249,12 @@ function draw(){
     ctx.rotate(o.rotation);
     ctx.translate(-o.w/2,-o.h/2);
 
-    if(o.type==="shape"){ctx.fillStyle=o.color;drawShape(o);}
+    if(o.type==="shape"){
+  ctx.fillStyle = ["gold","silver","rosegold"].includes(o.color)
+    ? metallic(o.color,o.w)
+    : o.color;
+  drawShape(o);
+}
     if(o.type==="text"){
       ctx.font=`${o.size}px ${o.font}`;
       ctx.textBaseline="top";
@@ -390,10 +395,27 @@ async function loadImageObject(url,type){
   const blob=new Blob([txt],{type:"image/svg+xml"});
   const blobUrl=URL.createObjectURL(blob);
   const img=new Image();
-  img.onload=()=>{
-    selected={type:type,img:img,x:canvas.width*0.3,y:canvas.height*0.3,w:canvas.width*0.3,h:(img.height/img.width)*(canvas.width*0.3),rotation:0,color:"gold",locked:false};
-    objects.push(selected);colorBtn.style.display="block";draw();
+  img.onload = () => {
+  const aspect = img.naturalWidth && img.naturalHeight
+    ? img.naturalHeight / img.naturalWidth
+    : 1;
+
+  selected = {
+    type: type,
+    img: img,
+    x: canvas.width * 0.3,
+    y: canvas.height * 0.3,
+    w: canvas.width * 0.3,
+    h: canvas.width * 0.3 * aspect,
+    rotation: 0,
+    color: "gold",
+    locked: false
   };
+
+  objects.push(selected);
+  colorBtn.style.display = "block";
+  draw();
+};
   img.src=blobUrl;
 }
 
