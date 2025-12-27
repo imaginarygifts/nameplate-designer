@@ -54,14 +54,13 @@ body{margin:0;background:#000;font-family:Poppins}
   border-radius:10px;
 }
 
-/* MINI TOOLBAR */
-.mini-tools{
-  display:grid;
-  grid-template-columns:1fr 1fr 1fr;
+/* MINI TOOLS (RIGHT SIDE) */
+.right-tools{
+  display:flex;
   gap:10px;
 }
 .mini-btn{
-  padding:18px;
+  padding:14px 16px;
   font-size:20px;
   background:#000;
   color:#fff;
@@ -91,9 +90,18 @@ body{margin:0;background:#000;font-family:Poppins}
   background:#000;
   padding:18px;
   display:grid;
+  grid-template-columns:1fr auto;
+  gap:18px;
+  align-items:center;
+}
+
+.control-grid{
+  display:grid;
   grid-template-columns:1fr 1fr;
   gap:18px;
+  margin-top:18px;
 }
+
 button,select{
   padding:30px;
   font-size:22px;
@@ -111,20 +119,18 @@ button,select{
 
 <canvas id="canvas"></canvas>
 
+<!-- CANVAS COLOUR -->
 <div id="canvasPalette" class="palette"></div>
 <button class="small-btn" onclick="toggleCanvasPalette()">Canvas Colour</button>
 
+<!-- ELEMENT COLOUR -->
 <div id="colors" class="palette"></div>
 <button id="colorBtn" class="big-btn" onclick="toggleColors()">SELECT COLOUR</button>
 
-<!-- 🔥 MINI TOOLBAR -->
-<div class="mini-tools">
-  <button class="mini-btn" onclick="undo()">↶</button>
-  <button class="mini-btn" onclick="toggleLock()">🔒</button>
-  <button class="mini-btn" onclick="redo()">↷</button>
-</div>
-
+<!-- TOP CONTROLS ROW -->
 <div id="controls">
+
+  <!-- LEFT: SHAPE SELECT -->
   <select onchange="addShape(this.value)">
     <option value="">Select Shape</option>
     <option value="rect">Rectangle</option>
@@ -134,6 +140,17 @@ button,select{
     <option value="pill">Pill</option>
   </select>
 
+  <!-- RIGHT: UNDO | LOCK | REDO -->
+  <div class="right-tools">
+    <button class="mini-btn" onclick="undo()">↶</button>
+    <button class="mini-btn" onclick="toggleLock()">🔒</button>
+    <button class="mini-btn" onclick="redo()">↷</button>
+  </div>
+
+</div>
+
+<!-- SECOND ROW CONTROLS -->
+<div class="control-grid">
   <button onclick="addText()">Add Text</button>
 
   <select onchange="changeFont(this.value)">
@@ -148,48 +165,41 @@ button,select{
 
 <button class="big-btn" style="display:block" onclick="saveImage()">SAVE DESIGN</button>
 
+<!-- ================= SCRIPT (UNCHANGED LOGIC) ================= -->
 <script>
+/* ---------- CORE ---------- */
 const canvas=document.getElementById("canvas");
 const ctx=canvas.getContext("2d");
 
 let canvasBg="#fff";
 let objects=[],selected=null;
-let mode=null,sx=0,sy=0,startAngle=0;
-let lastTapTime=0;
+let mode=null,sx=0,sy=0,startAngle=0,lastTapTime=0;
 
-/* 🔁 UNDO / REDO STACK */
-let history=[], redoStack=[];
-
+/* ---------- HISTORY ---------- */
+let history=[],redoStack=[];
 function saveState(){
   history.push(JSON.stringify({objects,canvasBg}));
   if(history.length>50) history.shift();
   redoStack=[];
 }
-
 function undo(){
   if(!history.length) return;
   redoStack.push(JSON.stringify({objects,canvasBg}));
-  const state=JSON.parse(history.pop());
-  objects=state.objects;
-  canvasBg=state.canvasBg;
-  selected=null;
-  draw();
+  const s=JSON.parse(history.pop());
+  objects=s.objects;canvasBg=s.canvasBg;selected=null;draw();
 }
-
 function redo(){
   if(!redoStack.length) return;
   history.push(JSON.stringify({objects,canvasBg}));
-  const state=JSON.parse(redoStack.pop());
-  objects=state.objects;
-  canvasBg=state.canvasBg;
-  selected=null;
-  draw();
+  const s=JSON.parse(redoStack.pop());
+  objects=s.objects;canvasBg=s.canvasBg;selected=null;draw();
 }
 
-/* COLORS */
+/* ---------- CONSTANTS ---------- */
 const ELEMENT_COLORS=["#000","#fff","#5a3a22","#f7f4e9","#e74c3c","#3498db","#2ecc71","gold","silver","rosegold"];
 const CANVAS_BACKGROUNDS=["#ffffff","#000000","#cccccc","#5a3a22"];
 
+/* ---------- CANVAS SIZE ---------- */
 function resizeCanvas(){
   canvas.width=Math.min(innerWidth-20,900);
   canvas.height=700;
@@ -197,7 +207,7 @@ function resizeCanvas(){
 }
 addEventListener("resize",resizeCanvas);
 
-/* METALLIC */
+/* ---------- METALLIC ---------- */
 function metallic(type,w){
   const g=ctx.createLinearGradient(0,0,w,0);
   if(type==="gold"){g.addColorStop(0,"#7a5c00");g.addColorStop(.5,"#fff3b0");g.addColorStop(1,"#7a5c00");}
@@ -206,7 +216,7 @@ function metallic(type,w){
   return g;
 }
 
-/* DRAW */
+/* ---------- DRAW ---------- */
 function draw(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
   ctx.fillStyle=canvasBg;
@@ -235,7 +245,6 @@ function draw(){
   });
 }
 
-/* SHAPES */
 function drawShape(o){
   ctx.beginPath();
   if(o.shape==="rect") ctx.rect(0,0,o.w,o.h);
@@ -245,7 +254,6 @@ function drawShape(o){
   if(o.shape==="pill") roundRect(0,0,o.w,o.h,o.h/2);
   ctx.fill();
 }
-
 function roundRect(x,y,w,h,r){
   ctx.moveTo(x+r,y);
   ctx.arcTo(x+w,y,x+w,y+h,r);
@@ -254,7 +262,7 @@ function roundRect(x,y,w,h,r){
   ctx.arcTo(x,y,x+w,y,r);
 }
 
-/* HANDLES */
+/* ---------- HANDLES ---------- */
 function drawIcon(x,y,t){
   ctx.beginPath();
   ctx.arc(x,y,14,0,Math.PI*2);
@@ -271,14 +279,13 @@ function drawHandles(o){
   drawIcon(o.w+18,o.h+18,"↔");
 }
 
-/* INTERACTION HELPERS */
+/* ---------- INTERACTION ---------- */
 function getPos(e){
   const r=canvas.getBoundingClientRect();
   const t=e.touches?e.touches[0]:e;
   return{x:(t.clientX-r.left)*(canvas.width/r.width),y:(t.clientY-r.top)*(canvas.height/r.height)};
 }
 
-/* EVENTS */
 canvas.onmousedown=canvas.ontouchstart=e=>{
   saveState();
   e.preventDefault();
@@ -327,13 +334,12 @@ canvas.onmousemove=canvas.ontouchmove=e=>{
     const cx=selected.x+selected.w/2,cy=selected.y+selected.h/2;
     selected.rotation=Math.atan2(p.y-cy,p.x-cx)-startAngle;
   }
-  sx=p.x;sy=p.y;
-  draw();
+  sx=p.x;sy=p.y;draw();
 };
 
 canvas.onmouseup=canvas.ontouchend=()=>mode=null;
 
-/* CONTROLS */
+/* ---------- CONTROLS ---------- */
 function addShape(s){
   saveState();
   if(!s)return;
