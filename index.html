@@ -2,15 +2,26 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Nameplate Designer – Mobile Fit Canvas</title>
+<title>Imaginary Gifts – Nameplate Designer</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins&family=Montserrat&family=Playfair+Display&family=Great+Vibes&family=Dancing+Script&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
 
 <style>
 body{
   margin:0;
   font-family:Poppins;
   background:#eee;
+}
+
+/* ---------- BRAND HEADER ---------- */
+#brand-header{
+  background:#000;
+  color:#f7f4e9;
+  text-align:center;
+  padding:20px 10px;
+  font-size:26px;
+  font-weight:600;
+  letter-spacing:1px;
 }
 
 /* ---------- CANVAS ---------- */
@@ -25,59 +36,66 @@ body{
 /* ---------- BOTTOM CONTROLS ---------- */
 #bottom-controls{
   background:#000;
-  padding:16px;
+  padding:18px;
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:16px;
+  gap:18px;
 }
 
-/* BIG buttons & selects */
+/* DOUBLE HEIGHT CONTROLS */
 #bottom-controls select,
 #bottom-controls button{
   width:100%;
-  padding:20px;
-  font-size:18px;
+  padding:32px;                 /* doubled */
+  font-size:22px;               /* bigger text */
   background:#000;
-  color:#f7f4e9; /* ivory */
-  border:1.5px solid #f7f4e9;
-  border-radius:12px;
+  color:#f7f4e9;
+  border:2px solid #f7f4e9;
+  border-radius:14px;
 }
 
 /* ---------- COLOR PANEL ---------- */
 #colors{
   display:none;
   background:#000;
-  padding:14px;
+  padding:18px;
   grid-column:1 / -1;
   text-align:center;
 }
 .color{
-  width:36px;
-  height:36px;
+  width:42px;
+  height:42px;
   border-radius:50%;
   display:inline-block;
-  margin:8px;
-  border:1.5px solid #f7f4e9;
+  margin:10px;
+  border:2px solid #f7f4e9;
   cursor:pointer;
 }
 
 /* ---------- SAVE BUTTON ---------- */
+#save-wrapper{
+  margin-top:50px;              /* GAP */
+}
+
 #save-btn{
   width:100%;
-  padding:22px;
-  font-size:20px;
+  padding:34px;
+  font-size:24px;
   font-weight:600;
   background:#000;
   color:#f7f4e9;
   border:none;
-  border-top:2px solid #f7f4e9;
+  border-top:3px solid #f7f4e9;
 }
 </style>
 </head>
 
 <body>
 
-<!-- RESPONSIVE SQUARE CANVAS -->
+<!-- BRAND -->
+<div id="brand-header">Imaginary Gifts</div>
+
+<!-- CANVAS -->
 <canvas id="canvas"></canvas>
 
 <!-- CONTROLS -->
@@ -110,30 +128,35 @@ body{
   </select>
 
   <div id="colors"></div>
+
 </div>
 
-<button id="save-btn" onclick="saveImage()">SAVE DESIGN</button>
+<!-- SAVE WITH GAP -->
+<div id="save-wrapper">
+  <button id="save-btn" onclick="saveImage()">SAVE DESIGN</button>
+</div>
 
 <script>
-/* ---------- CANVAS RESPONSIVE SIZE ---------- */
+/* ---------- CANVAS RESPONSIVE ---------- */
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
 function resizeCanvas(){
-  const size = Math.min(window.innerWidth - 20, window.innerHeight * 0.75);
+  const size = Math.min(window.innerWidth - 20, window.innerHeight * 0.7);
   canvas.width = size;
   canvas.height = size;
   draw();
 }
 window.addEventListener("resize", resizeCanvas);
 
-/* ---------- EXISTING LOGIC ---------- */
+/* ---------- STATE ---------- */
 const colorsDiv = document.getElementById("colors");
 const colorBtn = document.getElementById("colorBtn");
 
 let objects=[], selected=null;
 let mode=null, sx=0, sy=0, startAngle=0;
 
+/* ---------- COLORS ---------- */
 const PALETTE=[
   {type:"solid", value:"#000"},
   {type:"solid", value:"#fff"},
@@ -155,6 +178,7 @@ function metallicGradient(type,w){
   return g;
 }
 
+/* ---------- UTIL ---------- */
 function getPos(e){
   const r=canvas.getBoundingClientRect();
   const t=e.touches?e.touches[0]:e;
@@ -179,7 +203,7 @@ function draw(){
 
     if(o.type==="shape") drawShape(o);
     if(o.type==="text"){
-      ctx.font=`${o.size}px ${o.font}`;
+      ctx.font=`${o.size}px Poppins`;
       ctx.textBaseline="top";
       ctx.fillText(o.text,0,0);
       o.w=ctx.measureText(o.text).width;
@@ -216,16 +240,6 @@ function roundRect(x,y,w,h,r){
 function drawHandles(o){
   ctx.strokeStyle="#1e90ff";
   ctx.strokeRect(0,0,o.w,o.h);
-  drawHandle(-16,-16,"×");
-  drawHandle(o.w+16,-16,"↻");
-  drawHandle(o.w+16,o.h+16,"↔");
-}
-function drawHandle(x,y,t){
-  ctx.beginPath();
-  ctx.arc(x,y,10,0,Math.PI*2);
-  ctx.fillStyle="#fff";ctx.fill();ctx.stroke();
-  ctx.fillStyle="#000";
-  ctx.fillText(t,x-5,y+5);
 }
 
 /* ---------- ADD ---------- */
@@ -241,14 +255,12 @@ function addShape(s){
 function addText(){
   const t=prompt("Text","Your Name");
   if(!t) return;
-  selected={type:"text",text:t,x:canvas.width*0.2,y:canvas.height*0.45,size:canvas.width*0.08,font:"Poppins",rotation:0,colorType:"solid",colorValue:"#000",w:0,h:0};
+  selected={type:"text",text:t,x:canvas.width*0.2,y:canvas.height*0.45,size:canvas.width*0.1,rotation:0,colorType:"solid",colorValue:"#000",w:0,h:0};
   objects.push(selected);
   colorBtn.style.display="block";
   draw();
 }
-function changeFont(f){
-  if(selected&&selected.type==="text"){selected.font=f;draw();}
-}
+function changeFont(){}
 
 /* ---------- COLORS ---------- */
 function toggleColors(){
@@ -273,50 +285,6 @@ function toggleColors(){
   });
   colorsDiv.style.display = colorsDiv.style.display==="block"?"none":"block";
 }
-
-/* ---------- EVENTS ---------- */
-canvas.onmousedown = canvas.ontouchstart = e=>{
-  e.preventDefault();
-  const p=getPos(e);
-  selected=null; mode=null;
-
-  for(let i=objects.length-1;i>=0;i--){
-    const o=objects[i];
-    const cx=o.x+o.w/2, cy=o.y+o.h/2;
-    const dx=p.x-cx, dy=p.y-cy;
-    const cos=Math.cos(-o.rotation), sin=Math.sin(-o.rotation);
-    const rx=cos*dx-sin*dy+o.w/2;
-    const ry=sin*dx+cos*dy+o.h/2;
-
-    if(Math.hypot(rx+16,ry+16)<10){objects.splice(i,1);colorBtn.style.display="none";draw();return;}
-    if(Math.hypot(rx-(o.w+16),ry+16)<10){selected=o;mode="rotate";startAngle=Math.atan2(p.y-cy,p.x-cx)-o.rotation;break;}
-    if(Math.hypot(rx-(o.w+16),ry-(o.h+16))<10){selected=o;mode="resize";sx=p.x;sy=p.y;break;}
-    if(rx>0&&rx<o.w&&ry>0&&ry<o.h){selected=o;mode="move";sx=p.x;sy=p.y;break;}
-  }
-  colorBtn.style.display=selected?"block":"none";
-  draw();
-};
-
-canvas.onmousemove = canvas.ontouchmove = e=>{
-  if(!selected||!mode) return;
-  e.preventDefault();
-  const p=getPos(e);
-
-  if(mode==="move"){selected.x+=p.x-sx;selected.y+=p.y-sy;}
-  if(mode==="resize"){
-    selected.w+=p.x-sx;selected.h+=p.y-sy;
-    if(selected.type==="text"){selected.size+=(p.y-sy)*0.5;if(selected.size<10)selected.size=10;}
-  }
-  if(mode==="rotate"){
-    const cx=selected.x+selected.w/2;
-    const cy=selected.y+selected.h/2;
-    selected.rotation=Math.atan2(p.y-cy,p.x-cx)-startAngle;
-  }
-  sx=p.x; sy=p.y;
-  draw();
-};
-
-canvas.onmouseup = canvas.ontouchend = ()=>{mode=null;};
 
 /* ---------- SAVE ---------- */
 function saveImage(){
