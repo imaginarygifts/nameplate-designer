@@ -27,7 +27,7 @@ body{margin:0;background:#000;font-family:Poppins}
   touch-action:none;
 }
 
-/* BIG BUTTON */
+/* BUTTONS */
 .big-btn{
   width:100%;
   margin:10px auto;
@@ -39,18 +39,15 @@ body{margin:0;background:#000;font-family:Poppins}
   border-radius:14px;
   display:none;
 }
-
-/* SMALL BUTTON */
 .small-btn{
-  width:160px;
-  margin:10px auto;
+  width:180px;
+  margin:8px auto;
   padding:12px;
   font-size:14px;
   background:#000;
   color:#fff;
   border:1px solid #fff;
   border-radius:10px;
-  display:block;
 }
 
 /* PALETTE */
@@ -96,9 +93,10 @@ button,select{
 
 <canvas id="canvas"></canvas>
 
-<!-- CANVAS BACKGROUND PALETTE -->
+<!-- CANVAS BACKGROUND -->
 <div id="canvasPalette" class="palette"></div>
 <button class="small-btn" onclick="toggleCanvasPalette()">Canvas Colour</button>
+<button class="small-btn" onclick="addCanvasImageURL()">Add Image URL</button>
 
 <!-- ELEMENT COLOR -->
 <div id="colors" class="palette"></div>
@@ -140,8 +138,14 @@ let objects=[],selected=null;
 let mode=null,sx=0,sy=0,startAngle=0;
 let lastTap=0;
 
-const ELEMENT_COLORS=["#000","#fff","#5a3a22","#f7f4e9","#e74c3c","#3498db","#2ecc71","gold","silver","rosegold"];
+/* ELEMENT COLORS (METALLIC DEFAULT) */
+const ELEMENT_COLORS=[
+  "#000","#fff","#5a3a22","#f7f4e9",
+  "#e74c3c","#3498db","#2ecc71",
+  "gold","silver","rosegold"
+];
 
+/* CANVAS BACKGROUNDS */
 const CANVAS_BACKGROUNDS=[
   {type:"color",value:"#ffffff"},
   {type:"color",value:"#000000"},
@@ -159,6 +163,22 @@ function resizeCanvas(){
 }
 addEventListener("resize",resizeCanvas);
 
+/* METALLIC FILL */
+function metallic(type,w){
+  const g=ctx.createLinearGradient(0,0,w,0);
+  if(type==="gold"){g.addColorStop(0,"#7a5c00");g.addColorStop(.5,"#fff3b0");g.addColorStop(1,"#7a5c00");}
+  if(type==="silver"){g.addColorStop(0,"#777");g.addColorStop(.5,"#fff");g.addColorStop(1,"#777");}
+  if(type==="rosegold"){g.addColorStop(0,"#8b5a5a");g.addColorStop(.5,"#f3c1c1");g.addColorStop(1,"#8b5a5a");}
+  return g;
+}
+
+function pos(e){
+  const r=canvas.getBoundingClientRect();
+  const t=e.touches?e.touches[0]:e;
+  return{x:(t.clientX-r.left)*(canvas.width/r.width),
+         y:(t.clientY-r.top)*(canvas.height/r.height)};
+}
+
 function draw(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
@@ -175,29 +195,107 @@ function draw(){
     ctx.rotate(o.rotation);
     ctx.translate(-o.w/2,-o.h/2);
 
+    /* SHAPES */
     if(o.type==="shape"){
-      ctx.fillStyle=o.color;
-      ctx.fillRect(0,0,o.w,o.h);
+      ctx.fillStyle=["gold","silver","rosegold"].includes(o.color)
+        ? metallic(o.color,o.w)
+        : o.color;
+      drawShape(o);
     }
 
+    /* TEXT */
     if(o.type==="text"){
       ctx.font=`${o.size}px ${o.font}`;
       ctx.textBaseline="top";
       o.w=ctx.measureText(o.text).width;
       o.h=o.size;
-      ctx.fillStyle=o.color;
+      ctx.fillStyle=["gold","silver","rosegold"].includes(o.color)
+        ? metallic(o.color,o.w)
+        : o.color;
       ctx.fillText(o.text,0,0);
     }
 
-    if(o===selected){
-      ctx.strokeStyle="#1e90ff";
-      ctx.strokeRect(0,0,o.w,o.h);
-    }
+    if(o===selected) drawHandles(o);
     ctx.restore();
   });
 }
 
-/* CANVAS BG PALETTE */
+function drawShape(o){
+  ctx.beginPath();
+  if(o.shape==="rect") ctx.rect(0,0,o.w,o.h);
+  if(o.shape==="rounded") roundRect(0,0,o.w,o.h,20);
+  if(o.shape==="circle") ctx.arc(o.w/2,o.h/2,o.w/2,0,Math.PI*2);
+  if(o.shape==="oval") ctx.ellipse(o.w/2,o.h/2,o.w/2,o.h/2,0,0,Math.PI*2);
+  if(o.shape==="pill") roundRect(0,0,o.w,o.h,o.h/2);
+  ctx.fill();
+}
+
+function roundRect(x,y,w,h,r){
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+}
+
+function drawIcon(x,y,t){
+  ctx.beginPath();
+  ctx.arc(x,y,14,0,Math.PI*2);
+  ctx.fillStyle="#fff";ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle="#000";
+  ctx.font="16px Poppins";
+  ctx.fillText(t,x-6,y+6);
+}
+
+function drawHandles(o){
+  ctx.strokeStyle=o.locked?"#999":"#1e90ff";
+  ctx.strokeRect(0,0,o.w,o.h);
+  if(o.locked){drawIcon(o.w/2,-22,"🔒");return;}
+  drawIcon(-18,-18,"×");
+  drawIcon(o.w+18,-18,"↻");
+  drawIcon(o.w+18,o.h+18,"↔");
+}
+
+/* CONTROLS */
+function addShape(s){
+  if(!s)return;
+  objects=objects.filter(o=>o.type!=="shape");
+  const w=canvas.width*0.6;
+  selected={type:"shape",shape:s,x:(canvas.width-w)/2,y:(canvas.height-(w*0.6))/2,w:w,h:w*0.6,rotation:0,color:"#000",locked:false};
+  objects.push(selected);
+  colorBtn.style.display="block";
+  draw();
+}
+
+function addText(){
+  const t=prompt("Text","Your Name");
+  if(!t)return;
+  selected={type:"text",text:t,font:"Cinzel Decorative",size:canvas.width*0.08,x:canvas.width*0.2,y:canvas.height*0.45,rotation:0,color:"gold",locked:false};
+  objects.push(selected);
+  colorBtn.style.display="block";
+  draw();
+}
+
+function changeFont(f){if(selected&&selected.type==="text"){selected.font=f;draw();}}
+function toggleLock(){if(selected){selected.locked=!selected.locked;draw();}}
+
+/* PALETTES */
+function toggleColors(){
+  const c=document.getElementById("colors");
+  c.innerHTML="";
+  ELEMENT_COLORS.forEach(col=>{
+    const d=document.createElement("div");
+    d.className="thumb";
+    d.style.background=["gold","silver","rosegold"].includes(col)
+      ? "linear-gradient(135deg,#7a5c00,#fff3b0,#7a5c00)"
+      : col;
+    d.onclick=()=>{selected.color=col;c.style.display="none";draw();}
+    c.appendChild(d);
+  });
+  c.style.display=c.style.display==="block"?"none":"block";
+}
+
 function toggleCanvasPalette(){
   const p=document.getElementById("canvasPalette");
   p.innerHTML="";
@@ -207,10 +305,8 @@ function toggleCanvasPalette(){
     if(b.type==="color") d.style.background=b.value;
     else d.style.backgroundImage=`url(${b.value})`;
     d.onclick=()=>{
-      if(b.type==="color"){
-        canvasBg=b.value;
-        canvasBgImg=null;
-      }else{
+      if(b.type==="color"){canvasBg=b.value;canvasBgImg=null;}
+      else{
         const img=new Image();
         img.crossOrigin="anonymous";
         img.onload=()=>{canvasBgImg=img;draw();}
@@ -224,40 +320,13 @@ function toggleCanvasPalette(){
   p.style.display=p.style.display==="block"?"none":"block";
 }
 
-/* BASIC FUNCTIONS */
-function addShape(s){
-  if(!s)return;
-  objects=objects.filter(o=>o.type!=="shape");
-  const w=canvas.width*0.6;
-  selected={type:"shape",shape:s,x:(canvas.width-w)/2,y:(canvas.height-(w*0.6))/2,w:w,h:w*0.6,rotation:0,color:"#000",locked:false};
-  objects.push(selected);
-  document.getElementById("colorBtn").style.display="block";
-  draw();
-}
-
-function addText(){
-  const t=prompt("Text","Your Name");
-  if(!t)return;
-  selected={type:"text",text:t,font:"Cinzel Decorative",size:canvas.width*0.08,x:canvas.width*0.2,y:canvas.height*0.45,rotation:0,color:"#000",locked:false};
-  objects.push(selected);
-  document.getElementById("colorBtn").style.display="block";
-  draw();
-}
-
-function changeFont(f){if(selected&&selected.type==="text"){selected.font=f;draw();}}
-function toggleLock(){if(selected){selected.locked=!selected.locked;draw();}}
-
-function toggleColors(){
-  const c=document.getElementById("colors");
-  c.innerHTML="";
-  ELEMENT_COLORS.forEach(col=>{
-    const d=document.createElement("div");
-    d.className="thumb";
-    d.style.background=col;
-    d.onclick=()=>{selected.color=col;c.style.display="none";draw();}
-    c.appendChild(d);
-  });
-  c.style.display=c.style.display==="block"?"none":"block";
+function addCanvasImageURL(){
+  const url=prompt("Paste image URL:");
+  if(!url)return;
+  const img=new Image();
+  img.crossOrigin="anonymous";
+  img.onload=()=>{canvasBgImg=img;canvasBg="#fff";draw();}
+  img.src=url;
 }
 
 function saveImage(){
