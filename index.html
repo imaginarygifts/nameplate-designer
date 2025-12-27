@@ -210,17 +210,13 @@ function redo(){ if(!redoStack.length)return;
 const ELEMENT_COLORS=["#000","#fff","#5a3a22","#f7f4e9","#e74c3c","#3498db","#2ecc71","gold","silver","rosegold"];
 const CANVAS_BACKGROUNDS=["#ffffff","#000000","#cccccc","#5a3a22"];
 
-const LOGOS=[
-  "https://uxwing.com/wp-content/themes/uxwing/download/festival-culture-religion/hinduism-om-icon.svg",
- "https://uxwing.com/wp-content/themes/uxwing/download/festival-culture-religion/ganesha-icon.svg",
- "https://uxwing.com/wp-content/themes/uxwing/download/festival-culture-religion/swastik-icon.svg" ,
-  "https://uxwing.com/wp-content/themes/uxwing/download/festival-culture-religion/orthodox-cross-icon.svg",
-  "https://uxwing.com/wp-content/themes/uxwing/download/festival-culture-religion/jain-om-black-icon.svg",
-  "https://uxwing.com/wp-content/themes/uxwing/download/festival-culture-religion/sikhism-icon.svg",
+const LOGOS = [
+  "data:image/svg+xml;utf8,<svg xmlns='https://uxwing.com/wp-content/themes/uxwing/download/festival-culture-religion/hinduism-om-icon.svg' viewBox='0 0 100 100'><path fill='black' d='M50 5 L61 39 L95 39 L67 59 L78 93 L50 72 L22 93 L33 59 L5 39 L39 39 Z'/></svg>",
+  "data:image/svg+xml;utf8,<svg xmlns='https://uxwing.com/wp-content/themes/uxwing/download/festival-culture-religion/ganesha-icon.png' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='black'/></svg>"
 ];
-const BORDERS=[
-"https://uxwing.com/wp-content/themes/uxwing/download/user-interface/horizontal-line-icon.svg",
- "https://uxwing.com/wp-content/themes/uxwing/download/buildings-architecture-real-estate/home-icon.svg"
+
+const BORDERS = [
+  "data:image/svg+xml;utf8,<svg xmlns='https://uxwing.com/wp-content/themes/uxwing/download/buildings-architecture-real-estate/home-icon.svg' viewBox='0 0 200 100'><rect x='5' y='5' width='190' height='90' fill='none' stroke='black' stroke-width='10'/></svg>"
 ];
 
 /* ================= CANVAS ================= */
