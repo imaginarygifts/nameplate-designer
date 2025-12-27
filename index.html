@@ -8,171 +8,92 @@
 
 <style>
 body{margin:0;background:#000;font-family:Poppins}
-
-/* BRAND */
 #brand{
-  background:#000;
-  text-align:center;
-  padding:30px;
-  font-size:60px;
+  background:#000;text-align:center;padding:30px;font-size:60px;
   font-family:"Cinzel Decorative",serif;
   background-image:linear-gradient(135deg,#7a5c00,#fff3b0,#7a5c00);
-  -webkit-background-clip:text;
-  -webkit-text-fill-color:transparent;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
 }
-
-/* CANVAS */
 #canvas{
-  background:#fff;
-  border:2px solid #000;
-  border-radius:18px;
-  display:block;
-  margin:10px auto;
-  touch-action:none;
+  background:#fff;border:2px solid #000;border-radius:18px;
+  display:block;margin:10px auto;touch-action:none;
 }
-
-/* BUTTONS */
 .big-btn{
-  width:100%;
-  margin:10px auto;
-  padding:36px;
-  font-size:26px;
-  background:#000;
-  color:#f7f4e9;
-  border:2px solid #f7f4e9;
-  border-radius:14px;
+  width:100%;padding:36px;font-size:26px;background:#000;color:#f7f4e9;
+  border:2px solid #f7f4e9;border-radius:14px;margin:10px auto;
 }
 .small-btn{
-  display:block;
-  margin:10px auto;
-  padding:12px 24px;
-  font-size:14px;
-  background:#000;
-  color:#fff;
-  border:1px solid #fff;
-  border-radius:10px;
+  padding:12px 24px;font-size:14px;background:#000;color:#fff;
+  border:1px solid #fff;border-radius:10px;margin:10px auto;display:block;
 }
-
-/* MINI TOOLS */
-.right-tools{
-  display:flex;
-  gap:10px;
-}
-.mini-btn{
-  padding:28px 32px;
-  font-size:40px;
-  background:#000;
-  color:#fff;
-  border:2px solid #fff;
-  border-radius:18px;
-}
-
-/* PALETTES */
 .palette{
-  display:none;
-  overflow-x:auto;
-  white-space:nowrap;
-  padding:10px;
-  text-align:center;
+  display:none;overflow-x:auto;white-space:nowrap;padding:10px;
 }
 .thumb{
-  width:50px;
-  height:50px;
-  display:inline-block;
-  border-radius:8px;
-  margin-right:10px;
-  border:2px solid #fff;
+  width:50px;height:50px;border-radius:8px;border:2px solid #fff;
+  display:inline-block;margin-right:10px;
 }
 .logo-thumb{
-  width:200px;
-  height:200px;
-  margin-right:14px;
-  display:inline-flex;
-  justify-content:center;
-  align-items:center;
-  background:#fff;
-  border-radius:14px;
-  border:2px solid #fff;
+  width:200px;height:200px;border-radius:14px;
+  display:inline-flex;justify-content:center;align-items:center;
+  background:#fff;border:2px solid #fff;margin-right:14px;
 }
-.logo-thumb img{
-  max-width:90%;
-  max-height:90%;
-}
-
-/* CONTROLS */
+.logo-thumb img{max-width:90%;max-height:90%}
 #controls{
-  background:#000;
-  padding:18px;
-  display:grid;
-  grid-template-columns:1fr auto;
-  gap:18px;
-  align-items:center;
+  background:#000;padding:18px;display:grid;
+  grid-template-columns:1fr auto;gap:18px;align-items:center;
 }
 .control-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:18px;
-  margin-top:18px;
+  display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px;
 }
 button,select{
-  padding:30px;
-  font-size:22px;
-  background:#000;
-  color:#f7f4e9;
-  border:2px solid #f7f4e9;
-  border-radius:14px;
+  padding:30px;font-size:22px;background:#000;color:#f7f4e9;
+  border:2px solid #f7f4e9;border-radius:14px;
+}
+.right-tools{display:flex;gap:10px}
+.mini-btn{
+  padding:28px 32px;font-size:40px;background:#000;color:#fff;
+  border:2px solid #fff;border-radius:18px;
 }
 </style>
 </head>
 
 <body>
-
 <div id="brand">Imaginary Gifts</div>
 <canvas id="canvas"></canvas>
 
-<!-- CANVAS COLOR -->
-<div id="canvasPalette" class="palette"></div>
-<button class="small-btn" onclick="toggleCanvasPalette()">Canvas Colour</button>
-
-<!-- ELEMENT COLOR -->
 <div id="colors" class="palette"></div>
 <button id="colorBtn" class="big-btn" style="display:none" onclick="toggleColors()">SELECT COLOUR</button>
 
-<!-- SHAPE + UNDO LOCK REDO -->
 <div id="controls">
-  <select onchange="addShape(this.value)">
-    <option value="">Select Shape</option>
-    <option value="rect">Rectangle</option>
-    <option value="rounded">Rounded</option>
-    <option value="circle">Circle</option>
-    <option value="oval">Oval</option>
-    <option value="pill">Pill</option>
-  </select>
-
-  <div class="right-tools">
-    <button class="mini-btn" onclick="undo()">↶</button>
-    <button class="mini-btn" onclick="toggleLock()">🔒</button>
-    <button class="mini-btn" onclick="redo()">↷</button>
-  </div>
+<select onchange="addShape(this.value)">
+  <option value="">Select Shape</option>
+  <option value="rect">Rectangle</option>
+  <option value="rounded">Rounded</option>
+  <option value="circle">Circle</option>
+</select>
+<div class="right-tools">
+  <button class="mini-btn" onclick="undo()">↶</button>
+  <button class="mini-btn" onclick="toggleLock()">🔒</button>
+  <button class="mini-btn" onclick="redo()">↷</button>
+</div>
 </div>
 
-<!-- TEXT / FONT -->
 <div class="control-grid">
-  <button onclick="addText()">Add Text</button>
-  <select onchange="changeFont(this.value)">
-    <option value="">Select Font</option>
-    <option>Cinzel Decorative</option>
-    <option>Great Vibes</option>
-    <option>Dancing Script</option>
-    <option>Playfair Display</option>
-    <option>Montserrat</option>
-  </select>
+<button onclick="addText()">Add Text</button>
+<select onchange="changeFont(this.value)">
+  <option value="">Select Font</option>
+  <option>Cinzel Decorative</option>
+  <option>Great Vibes</option>
+  <option>Dancing Script</option>
+  <option>Playfair Display</option>
+  <option>Montserrat</option>
+</select>
 </div>
 
-<!-- LOGO / BORDER -->
 <div class="control-grid">
-  <button onclick="toggleLogoPalette()">Add Logo</button>
-  <button onclick="toggleBorderPalette()">Add Border</button>
+<button onclick="toggleLogoPalette()">Add Logo</button>
+<button onclick="toggleBorderPalette()">Add Border</button>
 </div>
 
 <div id="logoPalette" class="palette"></div>
@@ -181,281 +102,131 @@ button,select{
 <button class="big-btn" onclick="saveImage()">SAVE DESIGN</button>
 
 <script>
-/* ================= CORE ================= */
 const canvas=document.getElementById("canvas");
 const ctx=canvas.getContext("2d");
+canvas.width=Math.min(innerWidth-20,900);
+canvas.height=700;
 
-let canvasBg="#fff";
-let objects=[],selected=null;
-let mode=null,sx=0,sy=0,startAngle=0,lastTapTime=0;
-
-/* ================= HISTORY ================= */
+let objects=[],selected=null,mode=null,sx=0,sy=0,startAngle=0;
 let history=[],redoStack=[];
-function saveState(){
-  history.push(JSON.stringify({objects,canvasBg}));
-  redoStack=[];
-}
-function undo(){ if(!history.length)return;
-  redoStack.push(JSON.stringify({objects,canvasBg}));
-  const s=JSON.parse(history.pop());
-  objects=s.objects;canvasBg=s.canvasBg;selected=null;draw();
-}
-function redo(){ if(!redoStack.length)return;
-  history.push(JSON.stringify({objects,canvasBg}));
-  const s=JSON.parse(redoStack.pop());
-  objects=s.objects;canvasBg=s.canvasBg;selected=null;draw();
-}
 
-/* ================= DATA ================= */
-const ELEMENT_COLORS=["#000","#fff","#5a3a22","#f7f4e9","#e74c3c","#3498db","#2ecc71","gold","silver","rosegold"];
-const CANVAS_BACKGROUNDS=["#ffffff","#000000","#cccccc","#5a3a22"];
+const COLORS=["#000","#fff","gold","silver","rosegold"];
 
 const LOGOS=[
-  "https://upload.wikimedia.org/wikipedia/commons/6/6e/Om_symbol.svg",
-  "https://upload.wikimedia.org/wikipedia/commons/3/3b/Ganesha_outline.svg",
-  "https://upload.wikimedia.org/wikipedia/commons/8/8f/Buddha_outline.svg"
+ "https://upload.wikimedia.org/wikipedia/commons/6/6e/Om_symbol.svg",
+ "https://upload.wikimedia.org/wikipedia/commons/3/3b/Ganesha_outline.svg",
+ "https://upload.wikimedia.org/wikipedia/commons/8/8f/Buddha_outline.svg"
 ];
 const BORDERS=[
-  "https://upload.wikimedia.org/wikipedia/commons/2/29/Decorative_border_1.svg",
-  "https://upload.wikimedia.org/wikipedia/commons/5/5a/Decorative_border_2.svg"
+ "https://upload.wikimedia.org/wikipedia/commons/2/29/Decorative_border_1.svg",
+ "https://upload.wikimedia.org/wikipedia/commons/5/5a/Decorative_border_2.svg"
 ];
 
-/* ================= CANVAS ================= */
-function resizeCanvas(){
-  canvas.width=Math.min(innerWidth-20,900);
-  canvas.height=700;
-  draw();
-}
-addEventListener("resize",resizeCanvas);
+function saveState(){history.push(JSON.stringify(objects));redoStack=[];}
+function undo(){if(!history.length)return;redoStack.push(JSON.stringify(objects));objects=JSON.parse(history.pop());draw();}
+function redo(){if(!redoStack.length)return;history.push(JSON.stringify(objects));objects=JSON.parse(redoStack.pop());draw();}
 
-/* ================= METALLIC ================= */
 function metallic(type,w){
-  const g=ctx.createLinearGradient(0,0,w,0);
-  if(type==="gold"){g.addColorStop(0,"#7a5c00");g.addColorStop(.5,"#fff3b0");g.addColorStop(1,"#7a5c00");}
-  if(type==="silver"){g.addColorStop(0,"#777");g.addColorStop(.5,"#fff");g.addColorStop(1,"#777");}
-  if(type==="rosegold"){g.addColorStop(0,"#8b5a5a");g.addColorStop(.5,"#f3c1c1");g.addColorStop(1,"#8b5a5a");}
-  return g;
+ const g=ctx.createLinearGradient(0,0,w,0);
+ if(type==="gold"){g.addColorStop(0,"#7a5c00");g.addColorStop(.5,"#fff3b0");g.addColorStop(1,"#7a5c00");}
+ if(type==="silver"){g.addColorStop(0,"#777");g.addColorStop(.5,"#fff");g.addColorStop(1,"#777");}
+ if(type==="rosegold"){g.addColorStop(0,"#8b5a5a");g.addColorStop(.5,"#f3c1c1");g.addColorStop(1,"#8b5a5a");}
+ return g;
 }
 
-/* ================= DRAW ================= */
 function draw(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.fillStyle=canvasBg;
-  ctx.fillRect(0,0,canvas.width,canvas.height);
+ ctx.clearRect(0,0,canvas.width,canvas.height);
+ objects.forEach(o=>{
+  ctx.save();
+  ctx.translate(o.x+o.w/2,o.y+o.h/2);
+  ctx.rotate(o.rotation);
+  ctx.translate(-o.w/2,-o.h/2);
 
-  objects.forEach(o=>{
-    ctx.save();
-    ctx.translate(o.x+o.w/2,o.y+o.h/2);
-    ctx.rotate(o.rotation);
-    ctx.translate(-o.w/2,-o.h/2);
+  if(o.type==="text"){
+   ctx.font=`${o.size}px ${o.font}`;
+   o.w=ctx.measureText(o.text).width;o.h=o.size;
+   ctx.fillStyle=["gold","silver","rosegold"].includes(o.color)?metallic(o.color,o.w):o.color;
+   ctx.fillText(o.text,0,0);
+  }
+  if(o.type==="logo"||o.type==="border") ctx.drawImage(o.img,0,0,o.w,o.h);
 
-    if(o.type==="shape"){
-      ctx.fillStyle=["gold","silver","rosegold"].includes(o.color)?metallic(o.color,o.w):o.color;
-      drawShape(o);
-    }
-    if(o.type==="text"){
-      ctx.font=`${o.size}px ${o.font}`;
-      ctx.textBaseline="top";
-      o.w=ctx.measureText(o.text).width;
-      o.h=o.size;
-      ctx.fillStyle=["gold","silver","rosegold"].includes(o.color)?metallic(o.color,o.w):o.color;
-      ctx.fillText(o.text,0,0);
-    }
-    if(o.type==="logo"||o.type==="border"){
-      ctx.drawImage(o.img,0,0,o.w,o.h);
-    }
-    if(o===selected) drawHandles(o);
-    ctx.restore();
-  });
+  if(o===selected) drawHandles(o);
+  ctx.restore();
+ });
 }
 
-function drawShape(o){
-  ctx.beginPath();
-  if(o.shape==="rect") ctx.rect(0,0,o.w,o.h);
-  if(o.shape==="rounded") roundRect(0,0,o.w,o.h,20);
-  if(o.shape==="circle") ctx.arc(o.w/2,o.h/2,o.w/2,0,Math.PI*2);
-  if(o.shape==="oval") ctx.ellipse(o.w/2,o.h/2,o.w/2,o.h/2,0,0,Math.PI*2);
-  if(o.shape==="pill") roundRect(0,0,o.w,o.h,o.h/2);
-  ctx.fill();
-}
-function roundRect(x,y,w,h,r){
-  ctx.moveTo(x+r,y);
-  ctx.arcTo(x+w,y,x+w,y+h,r);
-  ctx.arcTo(x+w,y+h,x,y+h,r);
-  ctx.arcTo(x,y+h,x,y,r);
-  ctx.arcTo(x,y,x+w,y,r);
-}
-
-/* ================= HANDLES ================= */
-function drawIcon(x,y,t){
-  ctx.beginPath();
-  ctx.arc(x,y,14,0,Math.PI*2);
-  ctx.fillStyle="#fff";ctx.fill();ctx.stroke();
-  ctx.fillStyle="#000";ctx.font="16px Poppins";
-  ctx.fillText(t,x-6,y+6);
-}
 function drawHandles(o){
-  ctx.strokeStyle=o.locked?"#999":"#1e90ff";
-  ctx.strokeRect(0,0,o.w,o.h);
-  if(o.locked){drawIcon(o.w/2,-22,"🔒");return;}
-  drawIcon(-18,-18,"×");
-  drawIcon(o.w+18,-18,"↻");
-  drawIcon(o.w+18,o.h+18,"↔");
+ ctx.strokeStyle="#1e90ff";
+ ctx.strokeRect(0,0,o.w,o.h);
+ drawIcon(-18,-18,"×");
+ drawIcon(o.w+18,-18,"↻");
+ drawIcon(o.w+18,o.h+18,"↔");
+}
+function drawIcon(x,y,t){
+ ctx.beginPath();ctx.arc(x,y,14,0,Math.PI*2);
+ ctx.fillStyle="#fff";ctx.fill();ctx.stroke();
+ ctx.fillStyle="#000";ctx.fillText(t,x-6,y+6);
 }
 
-/* ================= INTERACTION ================= */
-function getPos(e){
-  const r=canvas.getBoundingClientRect();
-  const t=e.touches?e.touches[0]:e;
-  return{x:(t.clientX-r.left)*(canvas.width/r.width),y:(t.clientY-r.top)*(canvas.height/r.height)};
-}
-
-canvas.onmousedown=canvas.ontouchstart=e=>{
-  saveState();
-  e.preventDefault();
-  const p=getPos(e);
-  selected=null;mode=null;
-
-  for(let i=objects.length-1;i>=0;i--){
-    const o=objects[i];
-    const cx=o.x+o.w/2,cy=o.y+o.h/2;
-    const dx=p.x-cx,dy=p.y-cy;
-    const cos=Math.cos(-o.rotation),sin=Math.sin(-o.rotation);
-    const rx=cos*dx-sin*dy+o.w/2;
-    const ry=sin*dx+cos*dy+o.h/2;
-
-    if(rx>0&&rx<o.w&&ry>0&&ry<o.h){
-      if(o.type==="text"&&!o.locked){
-        const now=Date.now();
-        if(now-lastTapTime<350){
-          const nt=prompt("Edit Text",o.text);
-          if(nt!==null){o.text=nt;draw();}
-          return;
-        }
-        lastTapTime=now;
-      }
-    }
-    if(!o.locked&&Math.hypot(rx+18,ry+18)<14){objects.splice(i,1);draw();return;}
-    if(!o.locked&&Math.hypot(rx-(o.w+18),ry+18)<14){selected=o;mode="rotate";startAngle=Math.atan2(p.y-cy,p.x-cx)-o.rotation;break;}
-    if(!o.locked&&Math.hypot(rx-(o.w+18),ry-(o.h+18))<14){selected=o;mode="resize";sx=p.x;sy=p.y;break;}
-    if(rx>0&&rx<o.w&&ry>0&&ry<o.h){selected=o;if(!o.locked){mode="move";sx=p.x;sy=p.y;}break;}
-  }
-  colorBtn.style.display=selected?"block":"none";
-  draw();
-};
-
-canvas.onmousemove=canvas.ontouchmove=e=>{
-  if(!selected||!mode||selected.locked)return;
-  e.preventDefault();
-  const p=getPos(e);
-  if(mode==="move"){selected.x+=p.x-sx;selected.y+=p.y-sy;}
-  if(mode==="resize"){selected.w+=p.x-sx;selected.h+=p.y-sy;}
-  if(mode==="rotate"){
-    const cx=selected.x+selected.w/2,cy=selected.y+selected.h/2;
-    selected.rotation=Math.atan2(p.y-cy,p.x-cx)-startAngle;
-  }
-  sx=p.x;sy=p.y;draw();
-};
-
-canvas.onmouseup=canvas.ontouchend=()=>mode=null;
-
-/* ================= CONTROLS ================= */
-function addShape(s){
-  saveState();
-  if(!s)return;
-  objects=objects.filter(o=>o.type!=="shape");
-  const w=canvas.width*0.6;
-  selected={type:"shape",shape:s,x:(canvas.width-w)/2,y:(canvas.height-w*0.6)/2,w:w,h:w*0.6,rotation:0,color:"#000",locked:false};
-  objects.push(selected);colorBtn.style.display="block";draw();
-}
 function addText(){
-  saveState();
-  const t=prompt("Text","Your Name");
-  if(!t)return;
-  selected={type:"text",text:t,font:"Cinzel Decorative",size:canvas.width*0.08,x:canvas.width*0.2,y:canvas.height*0.45,rotation:0,color:"gold",locked:false};
-  objects.push(selected);colorBtn.style.display="block";draw();
-}
-function changeFont(f){saveState();if(selected&&selected.type==="text"){selected.font=f;draw();}}
-function toggleLock(){saveState();if(selected){selected.locked=!selected.locked;draw();}}
-
-function toggleColors(){
-  const c=document.getElementById("colors");
-  c.innerHTML="";
-  ELEMENT_COLORS.forEach(col=>{
-    const d=document.createElement("div");
-    d.className="thumb";
-    if(col==="gold")d.style.background="linear-gradient(135deg,#7a5c00,#fff3b0,#7a5c00)";
-    else if(col==="silver")d.style.background="linear-gradient(135deg,#777,#fff,#777)";
-    else if(col==="rosegold")d.style.background="linear-gradient(135deg,#8b5a5a,#f3c1c1,#8b5a5a)";
-    else d.style.background=col;
-    d.onclick=()=>{saveState();selected.color=col;c.style.display="none";draw();}
-    c.appendChild(d);
-  });
-  c.style.display=c.style.display==="block"?"none":"block";
+ saveState();
+ selected={type:"text",text:"Your Name",font:"Cinzel Decorative",
+ size:80,x:200,y:200,rotation:0,color:"gold",locked:false};
+ objects.push(selected);draw();
 }
 
-function toggleCanvasPalette(){
-  const p=document.getElementById("canvasPalette");
-  p.innerHTML="";
-  CANVAS_BACKGROUNDS.forEach(c=>{
-    const d=document.createElement("div");
-    d.className="thumb";
-    d.style.background=c;
-    d.onclick=()=>{saveState();canvasBg=c;p.style.display="none";draw();}
-    p.appendChild(d);
-  });
-  p.style.display=p.style.display==="block"?"none":"block";
+function loadImage(url,type){
+ saveState();
+ const img=new Image();img.crossOrigin="anonymous";
+ img.onload=()=>{
+  selected={type, img, x:200,y:200,w:300,h:300*(img.height/img.width),
+   rotation:0,color:"gold",locked:false};
+  objects.push(selected);draw();
+ };
+ img.src=url;
 }
 
-function loadImageObject(url,type){
-  saveState();
-  const img=new Image();
-  img.crossOrigin="anonymous";
-  img.onload=()=>{
-    selected={type:type,img:img,x:canvas.width*0.3,y:canvas.height*0.3,w:canvas.width*0.3,h:(img.height/img.width)*(canvas.width*0.3),rotation:0,color:"gold",locked:false};
-    objects.push(selected);colorBtn.style.display="block";draw();
-  };
-  img.src=url;
-}
 function toggleLogoPalette(){
-  const p=document.getElementById("logoPalette");
-  p.innerHTML="";
-  LOGOS.forEach(url=>{
-    const d=document.createElement("div");
-    d.className="logo-thumb";
-    const i=document.createElement("img");
-    i.src=url;
-    d.appendChild(i);
-    d.onclick=()=>{loadImageObject(url,"logo");p.style.display="none";}
-    p.appendChild(d);
-  });
-  p.style.display=p.style.display==="block"?"none":"block";
+ const p=document.getElementById("logoPalette");p.innerHTML="";
+ LOGOS.forEach(u=>{
+  const d=document.createElement("div");d.className="logo-thumb";
+  const i=document.createElement("img");i.src=u;d.appendChild(i);
+  d.onclick=()=>{loadImage(u,"logo");p.style.display="none"};
+  p.appendChild(d);
+ });
+ p.style.display="block";
 }
 function toggleBorderPalette(){
-  const p=document.getElementById("borderPalette");
-  p.innerHTML="";
-  BORDERS.forEach(url=>{
-    const d=document.createElement("div");
-    d.className="logo-thumb";
-    const i=document.createElement("img");
-    i.src=url;
-    d.appendChild(i);
-    d.onclick=()=>{loadImageObject(url,"border");p.style.display="none";}
-    p.appendChild(d);
-  });
-  p.style.display=p.style.display==="block"?"none":"block";
+ const p=document.getElementById("borderPalette");p.innerHTML="";
+ BORDERS.forEach(u=>{
+  const d=document.createElement("div");d.className="logo-thumb";
+  const i=document.createElement("img");i.src=u;d.appendChild(i);
+  d.onclick=()=>{loadImage(u,"border");p.style.display="none"};
+  p.appendChild(d);
+ });
+ p.style.display="block";
 }
+
+canvas.onmousedown=e=>{
+ const r=canvas.getBoundingClientRect();
+ const x=e.clientX-r.left,y=e.clientY-r.top;
+ selected=objects.findLast(o=>x>o.x&&x<o.x+o.w&&y>o.y&&y<o.y+o.h);
+ if(selected){mode="move";sx=x;sy=y;}
+};
+canvas.onmousemove=e=>{
+ if(!selected||!mode)return;
+ const r=canvas.getBoundingClientRect();
+ const x=e.clientX-r.left,y=e.clientY-r.top;
+ selected.x+=x-sx;selected.y+=y-sy;sx=x;sy=y;draw();
+};
+canvas.onmouseup=()=>mode=null;
 
 function saveImage(){
-  const a=document.createElement("a");
-  a.download="design.jpg";
-  a.href=canvas.toDataURL("image/jpeg",1);
-  a.click();
+ const a=document.createElement("a");
+ a.href=canvas.toDataURL("image/jpeg",1);
+ a.download="design.jpg";a.click();
 }
-
-resizeCanvas();
 draw();
 </script>
-
 </body>
 </html>
