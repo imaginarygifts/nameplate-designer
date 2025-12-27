@@ -13,7 +13,7 @@ body{
   font-family:Poppins;
 }
 
-/* LOGO HEADER */
+/* LOGO */
 #brand{
   background:#000;
   text-align:center;
@@ -131,13 +131,12 @@ let mode=null,sx=0,sy=0,startAngle=0;
 
 const PALETTE=["#000","#fff","#5a3a22","#f7f4e9","#e74c3c","#3498db","#2ecc71","gold","silver","rosegold"];
 
-/* 🔴 ONLY CHANGE IS HERE */
+/* FIXED CANVAS SIZE */
 function resizeCanvas(){
-  const width = Math.min(innerWidth - 20, 900);
-  const height = 700;   // 👈 fixed height
-
-  canvas.width = width;
-  canvas.height = height;
+  const width=Math.min(innerWidth-20,900);
+  const height=700;
+  canvas.width=width;
+  canvas.height=height;
   draw();
 }
 addEventListener("resize",resizeCanvas);
@@ -153,10 +152,8 @@ function metallic(type,w){
 function pos(e){
   const r=canvas.getBoundingClientRect();
   const t=e.touches?e.touches[0]:e;
-  return {
-    x:(t.clientX-r.left)*(canvas.width/r.width),
-    y:(t.clientY-r.top)*(canvas.height/r.height)
-  };
+  return {x:(t.clientX-r.left)*(canvas.width/r.width),
+          y:(t.clientY-r.top)*(canvas.height/r.height)};
 }
 
 function draw(){
@@ -223,10 +220,24 @@ function drawIcons(o){
   drawIcon(o.w+18,o.h+18,"↔");
 }
 
+/* 🔴 ONLY ONE SHAPE AT A TIME */
 function addShape(s){
   if(!s)return;
+
+  objects = objects.filter(o => o.type !== "shape");
+
   const w=canvas.width*0.6;
-  selected={type:"shape",shape:s,x:(canvas.width-w)/2,y:(canvas.height-w)/2,w:w,h:w*0.6,rotation:0,color:"#000",locked:false};
+  selected={
+    type:"shape",
+    shape:s,
+    x:(canvas.width-w)/2,
+    y:(canvas.height-(w*0.6))/2,
+    w:w,
+    h:w*0.6,
+    rotation:0,
+    color:"#000",
+    locked:false
+  };
   objects.push(selected);
   colorBtn.style.display="block";
   draw();
@@ -235,7 +246,17 @@ function addShape(s){
 function addText(){
   const t=prompt("Text","Your Name");
   if(!t)return;
-  selected={type:"text",text:t,font:"Cinzel Decorative",size:canvas.width*0.08,x:canvas.width*0.2,y:canvas.height*0.45,rotation:0,color:"gold",locked:false};
+  selected={
+    type:"text",
+    text:t,
+    font:"Cinzel Decorative",
+    size:canvas.width*0.08,
+    x:canvas.width*0.2,
+    y:canvas.height*0.45,
+    rotation:0,
+    color:"gold",
+    locked:false
+  };
   objects.push(selected);
   colorBtn.style.display="block";
   draw();
