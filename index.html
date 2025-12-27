@@ -2,9 +2,10 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Imaginary Gifts Designer</title>
+<title>Imaginary Gifts – Designer</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins&family=Great+Vibes&family=Dancing+Script&family=Playfair+Display&family=Montserrat&display=swap" rel="stylesheet">
+<!-- FONTS -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins&family=Great+Vibes&family=Dancing+Script&family=Playfair+Display&family=Montserrat&family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet">
 
 <style>
 body{
@@ -13,13 +14,17 @@ body{
   font-family:Poppins;
 }
 
-/* HEADER */
+/* BRAND HEADER */
 #brand{
   background:#000;
-  color:#f7f4e9;
   text-align:center;
-  padding:18px;
-  font-size:24px;
+  padding:28px;
+  font-size:38px;
+  font-family:"Cinzel Decorative", serif;
+  font-weight:700;
+  background-image:linear-gradient(135deg,#7a5c00,#fff3b0,#7a5c00);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
 }
 
 /* CANVAS */
@@ -50,7 +55,7 @@ button,select{
   border-radius:14px;
 }
 
-/* COLORS */
+/* COLOR PANEL */
 #colors{
   grid-column:1/-1;
   display:none;
@@ -61,8 +66,8 @@ button,select{
   width:40px;
   height:40px;
   border-radius:50%;
-  display:inline-block;
   margin:8px;
+  display:inline-block;
   border:2px solid #f7f4e9;
 }
 
@@ -70,8 +75,8 @@ button,select{
 #save{
   margin-top:50px;
   width:100%;
-  padding:34px;
-  font-size:24px;
+  padding:36px;
+  font-size:26px;
   background:#000;
   color:#f7f4e9;
   border:none;
@@ -100,7 +105,7 @@ button,select{
 
   <select onchange="changeFont(this.value)">
     <option value="">Select Font</option>
-    <option>Poppins</option>
+    <option>Cinzel Decorative</option>
     <option>Great Vibes</option>
     <option>Dancing Script</option>
     <option>Playfair Display</option>
@@ -120,7 +125,8 @@ const colorBtn=document.getElementById("colorBtn");
 
 function resizeCanvas(){
   const s=Math.min(innerWidth-20,innerHeight*0.7);
-  canvas.width=s; canvas.height=s;
+  canvas.width=s;
+  canvas.height=s;
   draw();
 }
 addEventListener("resize",resizeCanvas);
@@ -152,7 +158,9 @@ function draw(){
     ctx.rotate(o.rotation);
     ctx.translate(-o.w/2,-o.h/2);
 
-    ctx.fillStyle=["gold","silver","rosegold"].includes(o.color)?metallic(o.color,o.w):o.color;
+    ctx.fillStyle=["gold","silver","rosegold"].includes(o.color)
+      ? metallic(o.color,o.w)
+      : o.color;
 
     if(o.type==="shape") drawShape(o);
     if(o.type==="text"){
@@ -199,9 +207,9 @@ function drawIcon(x,y,t){
 function drawIcons(o){
   ctx.strokeStyle="#1e90ff";
   ctx.strokeRect(0,0,o.w,o.h);
-  drawIcon(-18,-18,"×");          // delete
-  drawIcon(o.w+18,-18,"↻");       // rotate
-  drawIcon(o.w+18,o.h+18,"↔");    // resize
+  drawIcon(-18,-18,"×");
+  drawIcon(o.w+18,-18,"↻");
+  drawIcon(o.w+18,o.h+18,"↔");
 }
 
 function addShape(s){
@@ -217,22 +225,34 @@ function addShape(s){
 function addText(){
   const t=prompt("Text","Your Name");
   if(!t)return;
-  selected={type:"text",text:t,font:"Poppins",size:canvas.width*0.08,x:canvas.width*0.2,y:canvas.height*0.45,rotation:0,color:"#000"};
+  selected={
+    type:"text",
+    text:t,
+    font:"Cinzel Decorative",
+    size:canvas.width*0.08,
+    x:canvas.width*0.2,
+    y:canvas.height*0.45,
+    rotation:0,
+    color:"gold"
+  };
   objects.push(selected);
   colorBtn.style.display="block";
   draw();
 }
 
-function changeFont(f){ if(selected&&selected.type==="text"){selected.font=f;draw();}}
+function changeFont(f){
+  if(selected&&selected.type==="text"){selected.font=f;draw();}
+}
 
 function toggleColors(){
   colorsDiv.innerHTML="";
   PALETTE.forEach(c=>{
     const d=document.createElement("div");
     d.className="color";
-    d.style.background=c==="gold"?"linear-gradient(135deg,#7a5c00,#fff3b0,#7a5c00)"
-      :c==="silver"?"linear-gradient(135deg,#777,#fff,#777)"
-      :c==="rosegold"?"linear-gradient(135deg,#8b5a5a,#f3c1c1,#8b5a5a)":c;
+    d.style.background=
+      c==="gold"?"linear-gradient(135deg,#7a5c00,#fff3b0,#7a5c00)":
+      c==="silver"?"linear-gradient(135deg,#777,#fff,#777)":
+      c==="rosegold"?"linear-gradient(135deg,#8b5a5a,#f3c1c1,#8b5a5a)":c;
     d.onclick=()=>{selected.color=c;colorsDiv.style.display="none";draw();}
     colorsDiv.appendChild(d);
   });
@@ -291,5 +311,6 @@ function saveImage(){
 resizeCanvas();
 draw();
 </script>
+
 </body>
 </html>
