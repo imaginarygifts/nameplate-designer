@@ -235,7 +235,21 @@ function metallic(type,w){
   if(type==="rosegold"){g.addColorStop(0,"#8b5a5a");g.addColorStop(.5,"#f3c1c1");g.addColorStop(1,"#8b5a5a");}
   return g;
 }
+function drawTintedImage(o){
+  ctx.drawImage(o.img,0,0,o.w,o.h);
 
+  ctx.globalCompositeOperation = "source-atop";
+
+  if(["gold","silver","rosegold"].includes(o.color)){
+    ctx.fillStyle = metallic(o.color, o.w);
+  }else{
+    ctx.fillStyle = o.color;
+  }
+
+  ctx.fillRect(0,0,o.w,o.h);
+  ctx.globalCompositeOperation = "source-over";
+}
+  
 /* ================= DRAW ================= */
 function draw(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -261,7 +275,7 @@ function draw(){
       ctx.fillText(o.text,0,0);
     }
     if(o.type==="logo"||o.type==="border"){
-      ctx.drawImage(o.img,0,0,o.w,o.h);
+  drawTintedImage(o);
     }
     if(o===selected) drawHandles(o);
     ctx.restore();
