@@ -2,8 +2,8 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Imaginary Gifts – Designer</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+<title>Imaginary Gifts – Nameplate Designer</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins&family=Great+Vibes&family=Montserrat&family=Dancing+Script&family=Playfair+Display&display=swap" rel="stylesheet">
 
 <style>
 body{
@@ -26,6 +26,7 @@ body{
 #canvas{
   background:#fff;
   border:2px solid #000;
+  border-radius:16px;
   display:block;
   margin:10px auto;
   touch-action:none;
@@ -59,11 +60,12 @@ body{
   padding:18px;
   text-align:center;
 }
+
 .color{
-  width:42px;
-  height:42px;
+  width:40px;
+  height:40px;
   border-radius:50%;
-  margin:10px;
+  margin:8px;
   display:inline-block;
   border:2px solid #f7f4e9;
 }
@@ -136,7 +138,8 @@ let objects=[], selected=null;
 let mode=null, sx=0, sy=0, startAngle=0;
 
 const PALETTE=[
-  "#000","#fff","#5a3a22","#f7f4e9","#e74c3c","#3498db","#2ecc71",
+  "#000","#fff","#5a3a22","#f7f4e9",
+  "#e74c3c","#3498db","#2ecc71",
   "gold","silver","rosegold"
 ];
 
@@ -172,6 +175,7 @@ function draw(){
     if(o.type==="shape") drawShape(o);
     if(o.type==="text"){
       ctx.font=`${o.size}px ${o.font}`;
+      ctx.textBaseline="top";
       ctx.fillText(o.text,0,0);
       o.w=ctx.measureText(o.text).width;
       o.h=o.size;
@@ -209,7 +213,6 @@ function drawHandles(o){
   handle(-20,-20,"×");
   handle(o.w+20,-20,"↻");
   handle(o.w+20,o.h+20,"↔");
-  handle(o.w/2,o.h/2,"✥");
 }
 
 function handle(x,y,t){
@@ -247,9 +250,11 @@ function toggleColors(){
   PALETTE.forEach(c=>{
     const d=document.createElement("div");
     d.className="color";
-    d.style.background=["gold","silver","rosegold"].includes(c)
-      ? "linear-gradient(90deg,#555,#fff,#555)"
-      : c;
+    if(c==="gold") d.style.background="linear-gradient(135deg,#7a5c00,#fff3b0,#7a5c00)";
+    else if(c==="silver") d.style.background="linear-gradient(135deg,#7d7d7d,#fff,#7d7d7d)";
+    else if(c==="rosegold") d.style.background="linear-gradient(135deg,#8b5a5a,#f3c1c1,#8b5a5a)";
+    else d.style.background=c;
+
     d.onclick=()=>{selected.color=c;colorsDiv.style.display="none";draw();}
     colorsDiv.appendChild(d);
   });
@@ -272,7 +277,7 @@ canvas.onmousedown = canvas.ontouchstart = e=>{
     if(Math.hypot(rx+20,ry+20)<14){objects.splice(i,1);draw();return;}
     if(Math.hypot(rx-(o.w+20),ry+20)<14){selected=o;mode="rotate";startAngle=Math.atan2(p.y-cy,p.x-cx)-o.rotation;break;}
     if(Math.hypot(rx-(o.w+20),ry-(o.h+20))<14){selected=o;mode="resize";sx=p.x;sy=p.y;break;}
-    if(Math.hypot(rx-o.w/2,ry-o.h/2)<16){selected=o;mode="move";sx=p.x;sy=p.y;break;}
+    if(rx>0&&rx<o.w&&ry>0&&ry<o.h){selected=o;mode="move";sx=p.x;sy=p.y;break;}
   }
   colorBtn.style.display=selected?"block":"none";
   draw();
@@ -311,3 +316,4 @@ draw();
 </script>
 </body>
 </html>
+
