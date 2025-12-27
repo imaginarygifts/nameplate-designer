@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Nameplate Designer – Square Canvas</title>
+<title>Nameplate Designer – Mobile Fit Canvas</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins&family=Montserrat&family=Playfair+Display&family=Great+Vibes&family=Dancing+Script&display=swap" rel="stylesheet">
 
@@ -14,59 +14,58 @@ body{
 }
 
 /* ---------- CANVAS ---------- */
-canvas{
+#canvas{
   background:#fff;
   border:2px solid #000;
   display:block;
-  margin:15px auto;
+  margin:10px auto;
   touch-action:none;
 }
 
 /* ---------- BOTTOM CONTROLS ---------- */
 #bottom-controls{
   background:#000;
-  padding:14px;
+  padding:16px;
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:14px;
+  gap:16px;
 }
 
-/* buttons & selects */
+/* BIG buttons & selects */
 #bottom-controls select,
 #bottom-controls button{
   width:100%;
-  padding:16px;
-  font-size:16px;
+  padding:20px;
+  font-size:18px;
   background:#000;
   color:#f7f4e9; /* ivory */
-  border:1px solid #f7f4e9;
-  border-radius:10px;
+  border:1.5px solid #f7f4e9;
+  border-radius:12px;
 }
 
 /* ---------- COLOR PANEL ---------- */
 #colors{
   display:none;
   background:#000;
-  padding:10px;
+  padding:14px;
   grid-column:1 / -1;
   text-align:center;
 }
 .color{
-  width:30px;
-  height:30px;
+  width:36px;
+  height:36px;
   border-radius:50%;
   display:inline-block;
-  margin:6px;
-  border:1px solid #f7f4e9;
+  margin:8px;
+  border:1.5px solid #f7f4e9;
   cursor:pointer;
 }
 
 /* ---------- SAVE BUTTON ---------- */
 #save-btn{
   width:100%;
-  margin:0;
-  padding:18px;
-  font-size:18px;
+  padding:22px;
+  font-size:20px;
   font-weight:600;
   background:#000;
   color:#f7f4e9;
@@ -78,13 +77,12 @@ canvas{
 
 <body>
 
-<!-- SQUARE CANVAS -->
-<canvas id="canvas" width="900" height="900"></canvas>
+<!-- RESPONSIVE SQUARE CANVAS -->
+<canvas id="canvas"></canvas>
 
 <!-- CONTROLS -->
 <div id="bottom-controls">
 
-  <!-- ROW 1 -->
   <select onchange="addShape(this.value)">
     <option value="">Select Shape</option>
     <option value="rect">Rectangle</option>
@@ -100,7 +98,6 @@ canvas{
     Select Colour
   </button>
 
-  <!-- ROW 2 (TEXT + FONT SAME LINE) -->
   <button onclick="addText()">Add Text</button>
 
   <select onchange="changeFont(this.value)">
@@ -112,26 +109,31 @@ canvas{
     <option>Dancing Script</option>
   </select>
 
-  <!-- COLOR PALETTE (FULL WIDTH) -->
   <div id="colors"></div>
-
 </div>
 
-<!-- SAVE BUTTON -->
 <button id="save-btn" onclick="saveImage()">SAVE DESIGN</button>
 
 <script>
-/* ================= LOGIC (UNCHANGED) ================= */
-
+/* ---------- CANVAS RESPONSIVE SIZE ---------- */
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
+
+function resizeCanvas(){
+  const size = Math.min(window.innerWidth - 20, window.innerHeight * 0.75);
+  canvas.width = size;
+  canvas.height = size;
+  draw();
+}
+window.addEventListener("resize", resizeCanvas);
+
+/* ---------- EXISTING LOGIC ---------- */
 const colorsDiv = document.getElementById("colors");
 const colorBtn = document.getElementById("colorBtn");
 
 let objects=[], selected=null;
 let mode=null, sx=0, sy=0, startAngle=0;
 
-/* ---------- COLOURS ---------- */
 const PALETTE=[
   {type:"solid", value:"#000"},
   {type:"solid", value:"#fff"},
@@ -153,7 +155,6 @@ function metallicGradient(type,w){
   return g;
 }
 
-/* ---------- HELPERS ---------- */
 function getPos(e){
   const r=canvas.getBoundingClientRect();
   const t=e.touches?e.touches[0]:e;
@@ -172,11 +173,9 @@ function draw(){
     ctx.rotate(o.rotation);
     ctx.translate(-o.w/2,-o.h/2);
 
-    if(o.colorType==="metallic"){
-      ctx.fillStyle=metallicGradient(o.colorValue,o.w);
-    }else{
-      ctx.fillStyle=o.colorValue;
-    }
+    ctx.fillStyle = o.colorType==="metallic"
+      ? metallicGradient(o.colorValue,o.w)
+      : o.colorValue;
 
     if(o.type==="shape") drawShape(o);
     if(o.type==="text"){
@@ -233,7 +232,8 @@ function drawHandle(x,y,t){
 function addShape(s){
   if(!s) return;
   objects=objects.filter(o=>o.type!=="shape");
-  selected={type:"shape",shape:s,x:125,y:200,w:350,h:200,rotation:0,colorType:"solid",colorValue:"#000"};
+  const size=canvas.width*0.6;
+  selected={type:"shape",shape:s,x:(canvas.width-size)/2,y:(canvas.height-size)/2,w:size,h:size*0.6,rotation:0,colorType:"solid",colorValue:"#000"};
   objects.unshift(selected);
   colorBtn.style.display="block";
   draw();
@@ -241,7 +241,7 @@ function addShape(s){
 function addText(){
   const t=prompt("Text","Your Name");
   if(!t) return;
-  selected={type:"text",text:t,x:150,y:250,size:40,font:"Poppins",rotation:0,colorType:"solid",colorValue:"#000",w:0,h:0};
+  selected={type:"text",text:t,x:canvas.width*0.2,y:canvas.height*0.45,size:canvas.width*0.08,font:"Poppins",rotation:0,colorType:"solid",colorValue:"#000",w:0,h:0};
   objects.push(selected);
   colorBtn.style.display="block";
   draw();
@@ -271,7 +271,7 @@ function toggleColors(){
     };
     colorsDiv.appendChild(d);
   });
-  colorsDiv.style.display=colorsDiv.style.display==="block"?"none":"block";
+  colorsDiv.style.display = colorsDiv.style.display==="block"?"none":"block";
 }
 
 /* ---------- EVENTS ---------- */
@@ -326,6 +326,8 @@ function saveImage(){
   a.click();
 }
 
+/* ---------- INIT ---------- */
+resizeCanvas();
 draw();
 </script>
 </body>
