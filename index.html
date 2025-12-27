@@ -63,7 +63,7 @@ button,select{
 
 <body>
 
-<div id="brand">Imaginary Gifts</div>
+<div id="brand">IMAGINARY GIFTS</div>
 <canvas id="canvas"></canvas>
 
 <div id="controls">
@@ -109,6 +109,7 @@ addEventListener("resize",resizeCanvas);
 
 let objects=[],selected=null;
 let mode=null,sx=0,sy=0,startAngle=0;
+let resizeStart={};
 
 const PALETTE=["#000","#fff","#5a3a22","#f7f4e9","#e74c3c","#3498db","#2ecc71","gold","silver","rosegold"];
 
@@ -128,24 +129,27 @@ function pos(e){
 
 function draw(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
+
   objects.forEach(o=>{
     ctx.save();
-    ctx.translate(o.x+o.w/2,o.y+o.h/2);
-    ctx.rotate(o.rotation||0);
-    ctx.translate(-o.w/2,-o.h/2);
 
-    if(o.type==="shape"){
-      ctx.fillStyle=["gold","silver","rosegold"].includes(o.color)?metallic(o.color,o.w):o.color;
-      drawShape(o);
-    }
-
+    /* TEXT: measure first */
     if(o.type==="text"){
       ctx.font=`${o.size}px ${o.font}`;
       o.w=ctx.measureText(o.text).width;
       o.h=o.size;
-      ctx.fillStyle=["gold","silver","rosegold"].includes(o.color)?metallic(o.color,o.w):o.color;
-      ctx.fillText(o.text,0,0);
     }
+
+    ctx.translate(o.x+o.w/2,o.y+o.h/2);
+    if(o.type==="text") ctx.rotate(o.rotation);
+    ctx.translate(-o.w/2,-o.h/2);
+
+    ctx.fillStyle=["gold","silver","rosegold"].includes(o.color)
+      ? metallic(o.color,o.w)
+      : o.color;
+
+    if(o.type==="shape") drawShape(o);
+    if(o.type==="text") ctx.fillText(o.text,0,0);
 
     if(o===selected) drawIcons(o);
     ctx.restore();
@@ -187,14 +191,16 @@ function drawIcons(o){
   if(o.type==="text") drawIcon(o.w+18,-18,"↻");
 }
 
-/* ADD SHAPE – centered */
+/* ADD SHAPE – CENTERED */
 function addShape(s){
   if(!s)return;
   objects=objects.filter(o=>o.type!=="shape");
   const w=canvas.width*0.6;
   selected={
-    type:"shape",shape:s,
-    w:w,h:w*0.6,
+    type:"shape",
+    shape:s,
+    w:w,
+    h:w*0.6,
     x:(canvas.width-w)/2,
     y:(canvas.height-(w*0.6))/2,
     color:"#000"
@@ -208,17 +214,23 @@ function addText(){
   const t=prompt("Text","Your Name");
   if(!t)return;
   selected={
-    type:"text",text:t,font:"Cinzel Decorative",
+    type:"text",
+    text:t,
+    font:"Cinzel Decorative",
     size:canvas.width*0.08,
-    x:canvas.width*0.2,y:canvas.height*0.45,
-    rotation:0,color:"gold"
+    x:canvas.width*0.2,
+    y:canvas.height*0.45,
+    rotation:0,
+    color:"gold"
   };
   objects.push(selected);
   colorBtn.style.display="block";
   draw();
 }
 
-function changeFont(f){if(selected&&selected.type==="text"){selected.font=f;draw();}}
+function changeFont(f){
+  if(selected&&selected.type==="text"){selected.font=f;draw();}
+}
 
 function toggleColors(){
   colorsDiv.innerHTML="";
@@ -245,9 +257,25 @@ canvas.onmousedown=canvas.ontouchstart=e=>{
     const rx=p.x-o.x, ry=p.y-o.y;
 
     if(Math.hypot(rx+18,ry+18)<14){objects.splice(i,1);draw();return;}
-    if(o.type==="text" && Math.hypot(rx-(o.w+18),ry+18)<14){selected=o;mode="rotate";startAngle=Math.atan2(p.y-(o.y+o.h/2),p.x-(o.x+o.w/2))-o.rotation;break;}
-    if(Math.hypot(rx-(o.w+18),ry-(o.h+18))<14){selected=o;mode="resize";sx=p.x;sy=p.y;break;}
-    if(o.type==="text" && rx>0&&rx<o.w&&ry>0&&ry<o.h){selected=o;mode="move";sx=p.x;sy=p.y;break;}
+
+    if(Math.hypot(rx-(o.w+18),ry-(o.h+18))<14){
+      selected=o;
+      mode="resize";
+      resizeStart={w:o.w,h:o.h,x:o.x,y:o.y,cx:o.x+o.w/2,cy:o.y+o.h/2};
+      sx=p.x; sy=p.y;
+      break;
+    }
+
+    if(o.type==="text" && Math.hypot(rx-(o.w+18),ry+18)<14){
+      selected=o;
+      mode="rotate";
+      startAngle=Math.atan2(p.y-(o.y+o.h/2),p.x-(o.x+o.w/2))-o.rotation;
+      break;
+    }
+
+    if(o.type==="text" && rx>0&&rx<o.w&&ry>0&&ry<o.h){
+      selected=o;mode="move";sx=p.x;sy=p.y;break;
+    }
   }
   colorBtn.style.display=selected?"block":"none";
   draw();
@@ -257,15 +285,30 @@ canvas.onmousemove=canvas.ontouchmove=e=>{
   if(!selected||!mode)return;
   e.preventDefault();
   const p=pos(e);
-  if(mode==="move"){selected.x+=p.x-sx;selected.y+=p.y-sy;}
-  if(mode==="resize"){
-    selected.w+=p.x-sx;selected.h+=p.y-sy;
-    if(selected.type==="text") selected.size+=(p.y-sy)*0.5;
+
+  if(mode==="move"){
+    selected.x+=p.x-sx;
+    selected.y+=p.y-sy;
   }
+
+  if(mode==="resize"){
+    const dw=p.x-sx, dh=p.y-sy;
+    selected.w=Math.max(30,resizeStart.w+dw);
+    selected.h=Math.max(30,resizeStart.h+dh);
+
+    /* KEEP SHAPE CENTERED */
+    selected.x=resizeStart.cx-selected.w/2;
+    selected.y=resizeStart.cy-selected.h/2;
+
+    if(selected.type==="text") selected.size+=(dh)*0.4;
+  }
+
   if(mode==="rotate"){
     selected.rotation=Math.atan2(p.y-(selected.y+selected.h/2),p.x-(selected.x+selected.w/2))-startAngle;
   }
-  sx=p.x;sy=p.y;draw();
+
+  sx=p.x; sy=p.y;
+  draw();
 };
 
 canvas.onmouseup=canvas.ontouchend=()=>mode=null;
