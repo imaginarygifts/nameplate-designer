@@ -236,25 +236,19 @@ function metallic(type,w){
   return g;
 }
 function drawTintedImage(o){
-  // Step 1: draw the SVG image
   ctx.drawImage(o.img, 0, 0, o.w, o.h);
 
-  // Step 2: keep only the logo shape as mask
   ctx.globalCompositeOperation = "destination-in";
   ctx.drawImage(o.img, 0, 0, o.w, o.h);
 
-  // Step 3: apply color INSIDE the mask
   ctx.globalCompositeOperation = "source-atop";
-
   if(["gold","silver","rosegold"].includes(o.color)){
     ctx.fillStyle = metallic(o.color, o.w);
   } else {
     ctx.fillStyle = o.color;
   }
-
   ctx.fillRect(0, 0, o.w, o.h);
 
-  // Reset
   ctx.globalCompositeOperation = "source-over";
 }
 /* ================= DRAW ================= */
