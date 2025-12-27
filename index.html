@@ -9,7 +9,7 @@
 <style>
 body{margin:0;background:#000;font-family:Poppins}
 
-/* LOGO */
+/* BRAND */
 #brand{
   background:#000;
   text-align:center;
@@ -41,7 +41,6 @@ body{margin:0;background:#000;font-family:Poppins}
   color:#f7f4e9;
   border:2px solid #f7f4e9;
   border-radius:14px;
-  display:none;
 }
 .small-btn{
   display:block;
@@ -54,21 +53,21 @@ body{margin:0;background:#000;font-family:Poppins}
   border-radius:10px;
 }
 
-/* MINI TOOLS (RIGHT SIDE) */
+/* MINI TOOLS */
 .right-tools{
   display:flex;
   gap:10px;
 }
 .mini-btn{
-  padding:14px 16px;
-  font-size:50px;
+  padding:28px 32px;
+  font-size:40px;
   background:#000;
   color:#fff;
   border:2px solid #fff;
-  border-radius:12px;
+  border-radius:18px;
 }
 
-/* PALETTE */
+/* PALETTES */
 .palette{
   display:none;
   overflow-x:auto;
@@ -84,6 +83,21 @@ body{margin:0;background:#000;font-family:Poppins}
   margin-right:10px;
   border:2px solid #fff;
 }
+.logo-thumb{
+  width:200px;
+  height:200px;
+  margin-right:14px;
+  display:inline-flex;
+  justify-content:center;
+  align-items:center;
+  background:#fff;
+  border-radius:14px;
+  border:2px solid #fff;
+}
+.logo-thumb img{
+  max-width:90%;
+  max-height:90%;
+}
 
 /* CONTROLS */
 #controls{
@@ -94,14 +108,12 @@ body{margin:0;background:#000;font-family:Poppins}
   gap:18px;
   align-items:center;
 }
-
 .control-grid{
   display:grid;
   grid-template-columns:1fr 1fr;
   gap:18px;
   margin-top:18px;
 }
-
 button,select{
   padding:30px;
   font-size:22px;
@@ -116,21 +128,18 @@ button,select{
 <body>
 
 <div id="brand">Imaginary Gifts</div>
-
 <canvas id="canvas"></canvas>
 
-<!-- CANVAS COLOUR -->
+<!-- CANVAS COLOR -->
 <div id="canvasPalette" class="palette"></div>
 <button class="small-btn" onclick="toggleCanvasPalette()">Canvas Colour</button>
 
-<!-- ELEMENT COLOUR -->
+<!-- ELEMENT COLOR -->
 <div id="colors" class="palette"></div>
-<button id="colorBtn" class="big-btn" onclick="toggleColors()">SELECT COLOUR</button>
+<button id="colorBtn" class="big-btn" style="display:none" onclick="toggleColors()">SELECT COLOUR</button>
 
-<!-- TOP CONTROLS ROW -->
+<!-- SHAPE + UNDO LOCK REDO -->
 <div id="controls">
-
-  <!-- LEFT: SHAPE SELECT -->
   <select onchange="addShape(this.value)">
     <option value="">Select Shape</option>
     <option value="rect">Rectangle</option>
@@ -140,19 +149,16 @@ button,select{
     <option value="pill">Pill</option>
   </select>
 
-  <!-- RIGHT: UNDO | LOCK | REDO -->
   <div class="right-tools">
     <button class="mini-btn" onclick="undo()">↶</button>
     <button class="mini-btn" onclick="toggleLock()">🔒</button>
     <button class="mini-btn" onclick="redo()">↷</button>
   </div>
-
 </div>
 
-<!-- SECOND ROW CONTROLS -->
+<!-- TEXT / FONT -->
 <div class="control-grid">
   <button onclick="addText()">Add Text</button>
-
   <select onchange="changeFont(this.value)">
     <option value="">Select Font</option>
     <option>Cinzel Decorative</option>
@@ -163,11 +169,19 @@ button,select{
   </select>
 </div>
 
-<button class="big-btn" style="display:block" onclick="saveImage()">SAVE DESIGN</button>
+<!-- LOGO / BORDER -->
+<div class="control-grid">
+  <button onclick="toggleLogoPalette()">Add Logo</button>
+  <button onclick="toggleBorderPalette()">Add Border</button>
+</div>
 
-<!-- ================= SCRIPT (UNCHANGED LOGIC) ================= -->
+<div id="logoPalette" class="palette"></div>
+<div id="borderPalette" class="palette"></div>
+
+<button class="big-btn" onclick="saveImage()">SAVE DESIGN</button>
+
 <script>
-/* ---------- CORE ---------- */
+/* ================= CORE ================= */
 const canvas=document.getElementById("canvas");
 const ctx=canvas.getContext("2d");
 
@@ -175,31 +189,38 @@ let canvasBg="#fff";
 let objects=[],selected=null;
 let mode=null,sx=0,sy=0,startAngle=0,lastTapTime=0;
 
-/* ---------- HISTORY ---------- */
+/* ================= HISTORY ================= */
 let history=[],redoStack=[];
 function saveState(){
   history.push(JSON.stringify({objects,canvasBg}));
-  if(history.length>50) history.shift();
   redoStack=[];
 }
-function undo(){
-  if(!history.length) return;
+function undo(){ if(!history.length)return;
   redoStack.push(JSON.stringify({objects,canvasBg}));
   const s=JSON.parse(history.pop());
   objects=s.objects;canvasBg=s.canvasBg;selected=null;draw();
 }
-function redo(){
-  if(!redoStack.length) return;
+function redo(){ if(!redoStack.length)return;
   history.push(JSON.stringify({objects,canvasBg}));
   const s=JSON.parse(redoStack.pop());
   objects=s.objects;canvasBg=s.canvasBg;selected=null;draw();
 }
 
-/* ---------- CONSTANTS ---------- */
+/* ================= DATA ================= */
 const ELEMENT_COLORS=["#000","#fff","#5a3a22","#f7f4e9","#e74c3c","#3498db","#2ecc71","gold","silver","rosegold"];
 const CANVAS_BACKGROUNDS=["#ffffff","#000000","#cccccc","#5a3a22"];
 
-/* ---------- CANVAS SIZE ---------- */
+const LOGOS=[
+  "https://upload.wikimedia.org/wikipedia/commons/6/6e/Om_symbol.svg",
+  "https://upload.wikimedia.org/wikipedia/commons/3/3b/Ganesha_outline.svg",
+  "https://upload.wikimedia.org/wikipedia/commons/8/8f/Buddha_outline.svg"
+];
+const BORDERS=[
+  "https://upload.wikimedia.org/wikipedia/commons/2/29/Decorative_border_1.svg",
+  "https://upload.wikimedia.org/wikipedia/commons/5/5a/Decorative_border_2.svg"
+];
+
+/* ================= CANVAS ================= */
 function resizeCanvas(){
   canvas.width=Math.min(innerWidth-20,900);
   canvas.height=700;
@@ -207,7 +228,7 @@ function resizeCanvas(){
 }
 addEventListener("resize",resizeCanvas);
 
-/* ---------- METALLIC ---------- */
+/* ================= METALLIC ================= */
 function metallic(type,w){
   const g=ctx.createLinearGradient(0,0,w,0);
   if(type==="gold"){g.addColorStop(0,"#7a5c00");g.addColorStop(.5,"#fff3b0");g.addColorStop(1,"#7a5c00");}
@@ -216,7 +237,7 @@ function metallic(type,w){
   return g;
 }
 
-/* ---------- DRAW ---------- */
+/* ================= DRAW ================= */
 function draw(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
   ctx.fillStyle=canvasBg;
@@ -240,6 +261,9 @@ function draw(){
       ctx.fillStyle=["gold","silver","rosegold"].includes(o.color)?metallic(o.color,o.w):o.color;
       ctx.fillText(o.text,0,0);
     }
+    if(o.type==="logo"||o.type==="border"){
+      ctx.drawImage(o.img,0,0,o.w,o.h);
+    }
     if(o===selected) drawHandles(o);
     ctx.restore();
   });
@@ -262,7 +286,7 @@ function roundRect(x,y,w,h,r){
   ctx.arcTo(x,y,x+w,y,r);
 }
 
-/* ---------- HANDLES ---------- */
+/* ================= HANDLES ================= */
 function drawIcon(x,y,t){
   ctx.beginPath();
   ctx.arc(x,y,14,0,Math.PI*2);
@@ -279,7 +303,7 @@ function drawHandles(o){
   drawIcon(o.w+18,o.h+18,"↔");
 }
 
-/* ---------- INTERACTION ---------- */
+/* ================= INTERACTION ================= */
 function getPos(e){
   const r=canvas.getBoundingClientRect();
   const t=e.touches?e.touches[0]:e;
@@ -325,11 +349,7 @@ canvas.onmousemove=canvas.ontouchmove=e=>{
   e.preventDefault();
   const p=getPos(e);
   if(mode==="move"){selected.x+=p.x-sx;selected.y+=p.y-sy;}
-  if(mode==="resize"){
-    selected.w+=p.x-sx;
-    selected.h+=p.y-sy;
-    if(selected.type==="text") selected.size+=(p.y-sy)*0.5;
-  }
+  if(mode==="resize"){selected.w+=p.x-sx;selected.h+=p.y-sy;}
   if(mode==="rotate"){
     const cx=selected.x+selected.w/2,cy=selected.y+selected.h/2;
     selected.rotation=Math.atan2(p.y-cy,p.x-cx)-startAngle;
@@ -339,13 +359,13 @@ canvas.onmousemove=canvas.ontouchmove=e=>{
 
 canvas.onmouseup=canvas.ontouchend=()=>mode=null;
 
-/* ---------- CONTROLS ---------- */
+/* ================= CONTROLS ================= */
 function addShape(s){
   saveState();
   if(!s)return;
   objects=objects.filter(o=>o.type!=="shape");
   const w=canvas.width*0.6;
-  selected={type:"shape",shape:s,x:(canvas.width-w)/2,y:(canvas.height-(w*0.6))/2,w:w,h:w*0.6,rotation:0,color:"#000",locked:false};
+  selected={type:"shape",shape:s,x:(canvas.width-w)/2,y:(canvas.height-w*0.6)/2,w:w,h:w*0.6,rotation:0,color:"#000",locked:false};
   objects.push(selected);colorBtn.style.display="block";draw();
 }
 function addText(){
@@ -382,6 +402,45 @@ function toggleCanvasPalette(){
     d.className="thumb";
     d.style.background=c;
     d.onclick=()=>{saveState();canvasBg=c;p.style.display="none";draw();}
+    p.appendChild(d);
+  });
+  p.style.display=p.style.display==="block"?"none":"block";
+}
+
+function loadImageObject(url,type){
+  saveState();
+  const img=new Image();
+  img.crossOrigin="anonymous";
+  img.onload=()=>{
+    selected={type:type,img:img,x:canvas.width*0.3,y:canvas.height*0.3,w:canvas.width*0.3,h:(img.height/img.width)*(canvas.width*0.3),rotation:0,color:"gold",locked:false};
+    objects.push(selected);colorBtn.style.display="block";draw();
+  };
+  img.src=url;
+}
+function toggleLogoPalette(){
+  const p=document.getElementById("logoPalette");
+  p.innerHTML="";
+  LOGOS.forEach(url=>{
+    const d=document.createElement("div");
+    d.className="logo-thumb";
+    const i=document.createElement("img");
+    i.src=url;
+    d.appendChild(i);
+    d.onclick=()=>{loadImageObject(url,"logo");p.style.display="none";}
+    p.appendChild(d);
+  });
+  p.style.display=p.style.display==="block"?"none":"block";
+}
+function toggleBorderPalette(){
+  const p=document.getElementById("borderPalette");
+  p.innerHTML="";
+  BORDERS.forEach(url=>{
+    const d=document.createElement("div");
+    d.className="logo-thumb";
+    const i=document.createElement("img");
+    i.src=url;
+    d.appendChild(i);
+    d.onclick=()=>{loadImageObject(url,"border");p.style.display="none";}
     p.appendChild(d);
   });
   p.style.display=p.style.display==="block"?"none":"block";
