@@ -1,89 +1,36 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
 <title>Imaginary Gifts Designer</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins&family=Cinzel+Decorative:wght@700&family=Great+Vibes&family=Dancing+Script&family=Playfair+Display&family=Montserrat&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins&family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet">
 
 <style>
-body{
-  margin:0;
-  background:#eee;
-  font-family:Poppins;
-}
-
-/* LOGO */
+body{margin:0;background:#eee;font-family:Poppins}
 #brand{
   background:#000;
   text-align:center;
-  padding:30px;
-  font-size:38px;
+  padding:28px;
+  font-size:36px;
   font-family:"Cinzel Decorative",serif;
-  background-image:linear-gradient(
-    135deg,
-    #6e5200,
-    #f9e784,
-    #fff8dc,
-    #d4af37,
-    #6e5200
-  );
+  background-image:linear-gradient(135deg,#6e5200,#f9e784,#fff8dc,#d4af37,#6e5200);
   -webkit-background-clip:text;
-  background-clip:text;
   color:transparent;
 }
-
-/* CANVAS */
 #canvas{
-  display:block;
-  margin:12px auto;
-  background:#fff;
-  border:2px solid #000;
-  border-radius:18px;
-  touch-action:none;
+  display:block;margin:12px auto;
+  background:#fff;border:2px solid #000;
+  border-radius:18px;touch-action:none;
 }
-
-/* CONTROLS */
 #controls{
-  background:#000;
-  padding:18px;
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:18px;
+  background:#000;padding:16px;
+  display:grid;grid-template-columns:1fr 1fr;gap:16px;
 }
-
 button,select{
-  padding:28px;
-  font-size:22px;
-  background:#000;
-  color:#f7f4e9;
-  border:2px solid #f7f4e9;
-  border-radius:14px;
-}
-
-#colors{
-  grid-column:1/-1;
-  display:none;
-  text-align:center;
-}
-
-.color{
-  width:42px;
-  height:42px;
-  border-radius:50%;
-  display:inline-block;
-  margin:8px;
-  border:2px solid #f7f4e9;
-}
-
-#save{
-  margin-top:50px;
-  width:100%;
-  padding:36px;
-  font-size:26px;
-  background:#000;
-  color:#f7f4e9;
-  border:none;
+  padding:26px;font-size:20px;
+  background:#000;color:#f7f4e9;
+  border:2px solid #f7f4e9;border-radius:14px;
 }
 </style>
 </head>
@@ -95,80 +42,31 @@ button,select{
 
 <div id="controls">
   <select onchange="addShape(this.value)">
-    <option value="">Select Shape</option>
+    <option value="">Shape</option>
     <option value="rect">Rectangle</option>
     <option value="rounded">Rounded</option>
     <option value="circle">Circle</option>
-    <option value="oval">Oval</option>
-    <option value="pill">Pill</option>
   </select>
-
-  <button id="colorBtn" onclick="toggleColors()" style="display:none">Select Colour</button>
-
   <button onclick="addText()">Add Text</button>
-
-  <select onchange="changeFont(this.value)">
-    <option value="">Select Font</option>
-    <option>Cinzel Decorative</option>
-    <option>Great Vibes</option>
-    <option>Dancing Script</option>
-    <option>Playfair Display</option>
-    <option>Montserrat</option>
-  </select>
-
-  <div id="colors"></div>
 </div>
-
-<button id="save" onclick="saveImage()">SAVE DESIGN</button>
 
 <script>
 const canvas=document.getElementById("canvas");
 const ctx=canvas.getContext("2d");
-const colorBtn=document.getElementById("colorBtn");
-const colorsDiv=document.getElementById("colors");
 
-let objects=[];
-let selected=null;
-let mode=null;
-let sx=0,sy=0,startAngle=0,resizeStart={};
-
-const PALETTE=[
-  "#000","#fff","#5a3a22","#f7f4e9",
-  "#e74c3c","#3498db","#2ecc71",
-  "gold","silver","rosegold"
-];
+let objects=[],selected=null;
+let mode=null,sx=0,sy=0,startAngle=0;
+let resizeStart={};
 
 function resizeCanvas(){
-  const size=Math.min(innerWidth-20,innerHeight*0.65);
-  canvas.width=size;
-  canvas.height=size;
+  const s=Math.min(innerWidth-20,innerHeight*0.65);
+  canvas.width=s;canvas.height=s;
   draw();
 }
-window.addEventListener("resize",resizeCanvas);
-
-function metallic(type,w){
-  const g=ctx.createLinearGradient(0,0,w,0);
-  if(type==="gold"){
-    g.addColorStop(0,"#7a5c00");
-    g.addColorStop(.5,"#fff3b0");
-    g.addColorStop(1,"#7a5c00");
-  }
-  if(type==="silver"){
-    g.addColorStop(0,"#777");
-    g.addColorStop(.5,"#fff");
-    g.addColorStop(1,"#777");
-  }
-  if(type==="rosegold"){
-    g.addColorStop(0,"#8b5a5a");
-    g.addColorStop(.5,"#f3c1c1");
-    g.addColorStop(1,"#8b5a5a");
-  }
-  return g;
-}
+addEventListener("resize",resizeCanvas);
 
 function draw(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
-
   objects.forEach(o=>{
     ctx.save();
 
@@ -176,54 +74,34 @@ function draw(){
       ctx.font=`${o.size}px ${o.font}`;
       const m=ctx.measureText(o.text);
       o.w=m.width;
-      o.h=m.actualBoundingBoxAscent+m.actualBoundingBoxDescent;
-      o.ascent=m.actualBoundingBoxAscent;
+      o.h=o.size;
     }
 
     ctx.translate(o.x+o.w/2,o.y+o.h/2);
     ctx.rotate(o.rotation);
     ctx.translate(-o.w/2,-o.h/2);
 
-    ctx.fillStyle=["gold","silver","rosegold"].includes(o.color)
-      ? metallic(o.color,o.w)
-      : o.color;
-
-    if(o.type==="shape") drawShape(o);
-    if(o.type==="text") ctx.fillText(o.text,0,o.ascent);
+    ctx.fillStyle=o.color;
+    if(o.type==="shape"){
+      if(o.shape==="rect") ctx.fillRect(0,0,o.w,o.h);
+      if(o.shape==="rounded"){
+        ctx.beginPath();
+        ctx.roundRect(0,0,o.w,o.h,20);
+        ctx.fill();
+      }
+      if(o.shape==="circle"){
+        ctx.beginPath();
+        ctx.arc(o.w/2,o.h/2,o.w/2,0,Math.PI*2);
+        ctx.fill();
+      }
+    }
+    if(o.type==="text"){
+      ctx.fillText(o.text,0,o.h);
+    }
 
     if(o===selected) drawHandles(o);
     ctx.restore();
   });
-}
-
-function drawShape(o){
-  ctx.beginPath();
-  if(o.shape==="rect") ctx.rect(0,0,o.w,o.h);
-  if(o.shape==="rounded") roundRect(0,0,o.w,o.h,20);
-  if(o.shape==="circle") ctx.arc(o.w/2,o.h/2,o.w/2,0,Math.PI*2);
-  if(o.shape==="oval") ctx.ellipse(o.w/2,o.h/2,o.w/2,o.h/2,0,0,Math.PI*2);
-  if(o.shape==="pill") roundRect(0,0,o.w,o.h,o.h/2);
-  ctx.fill();
-}
-
-function roundRect(x,y,w,h,r){
-  ctx.moveTo(x+r,y);
-  ctx.arcTo(x+w,y,x+w,y+h,r);
-  ctx.arcTo(x+w,y+h,x,y+h,r);
-  ctx.arcTo(x,y+h,x,y,r);
-  ctx.arcTo(x,y,x+w,y,r);
-}
-
-function icon(x,y,t){
-  ctx.beginPath();
-  ctx.arc(x,y,14,0,Math.PI*2);
-  ctx.fillStyle="#fff";
-  ctx.fill();
-  ctx.strokeStyle="#000";
-  ctx.stroke();
-  ctx.fillStyle="#000";
-  ctx.font="16px Poppins";
-  ctx.fillText(t,x-6,y+6);
 }
 
 function drawHandles(o){
@@ -234,133 +112,94 @@ function drawHandles(o){
   icon(o.w+18,o.h+18,"↔");
 }
 
+function icon(x,y,t){
+  ctx.beginPath();
+  ctx.arc(x,y,14,0,Math.PI*2);
+  ctx.fillStyle="#fff";ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle="#000";
+  ctx.fillText(t,x-6,y+6);
+}
+
 function addShape(type){
   if(!type)return;
-  const w=canvas.width*0.6;
   selected={
-    type:"shape",
-    shape:type,
-    w:w,
-    h:w*0.6,
-    x:(canvas.width-w)/2,
-    y:(canvas.height-(w*0.6))/2,
-    rotation:0,
-    color:"#000"
+    type:"shape",shape:type,
+    w:canvas.width*0.5,h:canvas.width*0.3,
+    x:canvas.width*0.25,y:canvas.height*0.35,
+    rotation:0,color:"#000"
   };
-  objects.push(selected);
-  colorBtn.style.display="block";
-  draw();
+  objects.push(selected);draw();
 }
 
 function addText(){
-  const t=prompt("Text","YOUR NAME");
-  if(!t)return;
   selected={
-    type:"text",
-    text:t,
+    type:"text",text:"YOUR NAME",
     font:"Cinzel Decorative",
     size:canvas.width*0.08,
-    x:canvas.width*0.25,
-    y:canvas.height*0.25,
-    rotation:0,
-    color:"gold"
+    w:0,h:0,
+    x:canvas.width*0.3,y:canvas.height*0.3,
+    rotation:0,color:"#000"
   };
-  objects.push(selected);
-  colorBtn.style.display="block";
-  draw();
+  objects.push(selected);draw();
 }
 
-function changeFont(f){
-  if(selected){selected.font=f;draw();}
+function getLocal(o,p){
+  const cx=o.x+o.w/2,cy=o.y+o.h/2;
+  let dx=p.x-cx,dy=p.y-cy;
+  const c=Math.cos(-o.rotation),s=Math.sin(-o.rotation);
+  return{
+    x:dx*c-dy*s+o.w/2,
+    y:dx*s+dy*c+o.h/2
+  };
 }
 
-function toggleColors(){
-  colorsDiv.innerHTML="";
-  PALETTE.forEach(c=>{
-    const d=document.createElement("div");
-    d.className="color";
-    d.style.background=
-      c==="gold"?"linear-gradient(135deg,#7a5c00,#fff3b0,#7a5c00)"
-      :c==="silver"?"linear-gradient(135deg,#777,#fff,#777)"
-      :c==="rosegold"?"linear-gradient(135deg,#8b5a5a,#f3c1c1,#8b5a5a)"
-      :c;
-    d.onclick=()=>{selected.color=c;colorsDiv.style.display="none";draw();}
-    colorsDiv.appendChild(d);
-  });
-  colorsDiv.style.display=colorsDiv.style.display==="block"?"none":"block";
-}
-
-function getPos(e){
+function pos(e){
   const r=canvas.getBoundingClientRect();
   const t=e.touches?e.touches[0]:e;
-  return {
-    x:(t.clientX-r.left)*(canvas.width/r.width),
-    y:(t.clientY-r.top)*(canvas.height/r.height)
-  };
+  return{x:(t.clientX-r.left)*(canvas.width/r.width),
+         y:(t.clientY-r.top)*(canvas.height/r.height)};
 }
 
 /* INTERACTION */
 canvas.onmousedown=canvas.ontouchstart=e=>{
   e.preventDefault();
-  const p=getPos(e);
-  selected=null;
-  mode=null;
+  const p=pos(e);
+  selected=null;mode=null;
 
   for(let i=objects.length-1;i>=0;i--){
     const o=objects[i];
+    const l=getLocal(o,p);
 
-    let dx=p.x-(o.x+o.w/2);
-    let dy=p.y-(o.y+o.h/2);
+    if(Math.hypot(l.x+18,l.y+18)<18){objects.splice(i,1);draw();return;}
 
-    const cos=Math.cos(-o.rotation);
-    const sin=Math.sin(-o.rotation);
-    const tx=dx*cos-dy*sin;
-    const ty=dx*sin+dy*cos;
-
-    const rx=tx+o.w/2;
-    const ry=ty+o.h/2;
-
-    if(Math.hypot(rx+18,ry+18)<18){
-      objects.splice(i,1);
-      draw();
-      return;
-    }
-
-    if(Math.abs(rx-o.w)<25 && Math.abs(ry-o.h)<25){
-      selected=o;
-      mode="resize";
+    if(Math.abs(l.x-o.w)<20&&Math.abs(l.y-o.h)<20){
+      selected=o;mode="resize";
       resizeStart={w:o.w,h:o.h,cx:o.x+o.w/2,cy:o.y+o.h/2};
-      sx=p.x;sy=p.y;
-      break;
+      sx=p.x;sy=p.y;break;
     }
 
-    if(Math.hypot(rx-(o.w+18),ry+18)<18){
-      selected=o;
-      mode="rotate";
+    if(Math.hypot(l.x-(o.w+18),l.y+18)<18){
+      selected=o;mode="rotate";
       startAngle=Math.atan2(p.y-(o.y+o.h/2),p.x-(o.x+o.w/2))-o.rotation;
       break;
     }
 
-    if(rx>0&&rx<o.w&&ry>0&&ry<o.h){
-      selected=o;
-      mode="move";
-      sx=p.x;sy=p.y;
-      break;
+    if(l.x>0&&l.x<o.w&&l.y>0&&l.y<o.h){
+      selected=o;mode="move";
+      sx=p.x;sy=p.y;break;
     }
   }
-
-  colorBtn.style.display=selected?"block":"none";
   draw();
 };
 
 canvas.onmousemove=canvas.ontouchmove=e=>{
   if(!selected||!mode)return;
   e.preventDefault();
-  const p=getPos(e);
+  const p=pos(e);
 
   if(mode==="move"){
-    selected.x+=p.x-sx;
-    selected.y+=p.y-sy;
+    selected.x+=p.x-sx;selected.y+=p.y-sy;
   }
 
   if(mode==="resize"){
@@ -373,7 +212,10 @@ canvas.onmousemove=canvas.ontouchmove=e=>{
   }
 
   if(mode==="rotate"){
-    selected.rotation=Math.atan2(p.y-(selected.y+selected.h/2),p.x-(selected.x+selected.w/2))-startAngle;
+    selected.rotation=Math.atan2(
+      p.y-(selected.y+selected.h/2),
+      p.x-(selected.x+selected.w/2)
+    )-startAngle;
   }
 
   sx=p.x;sy=p.y;
@@ -382,16 +224,7 @@ canvas.onmousemove=canvas.ontouchmove=e=>{
 
 canvas.onmouseup=canvas.ontouchend=()=>mode=null;
 
-function saveImage(){
-  const a=document.createElement("a");
-  a.download="design.jpg";
-  a.href=canvas.toDataURL("image/jpeg",1);
-  a.click();
-}
-
 resizeCanvas();
-draw();
 </script>
-
 </body>
 </html>
