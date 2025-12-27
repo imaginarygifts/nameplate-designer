@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <title>Imaginary Gifts – Designer</title>
 
-<!-- Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Poppins&family=Great+Vibes&family=Dancing+Script&family=Playfair+Display&family=Montserrat&family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet">
 
 <style>
@@ -100,6 +99,8 @@ button,select{
     <option value="pill">Pill</option>
   </select>
 
+  <button onclick="toggleLock()">🔒 Lock / Unlock</button>
+
   <button id="colorBtn" onclick="toggleColors()" style="display:none">Select Colour</button>
 
   <button onclick="addText()">Add Text</button>
@@ -185,15 +186,11 @@ function draw(){
     if(o.type==="text"){
       ctx.font=`${o.size}px ${o.font}`;
       ctx.textBaseline="top";
-
-      // measure text FIRST (important fix)
-      o.w = ctx.measureText(o.text).width;
-      o.h = o.size;
-
+      o.w=ctx.measureText(o.text).width;
+      o.h=o.size;
       ctx.fillStyle=["gold","silver","rosegold"].includes(o.color)
         ? metallic(o.color,o.w)
         : o.color;
-
       ctx.fillText(o.text,0,0);
     }
 
@@ -231,8 +228,13 @@ function drawIcon(x,y,t){
 }
 
 function drawIcons(o){
-  ctx.strokeStyle="#1e90ff";
+  ctx.strokeStyle=o.locked?"#999":"#1e90ff";
   ctx.strokeRect(0,0,o.w,o.h);
+
+  if(o.locked){
+    drawIcon(o.w/2,-22,"🔒");
+    return;
+  }
   drawIcon(-18,-18,"×");
   drawIcon(o.w+18,-18,"↻");
   drawIcon(o.w+18,o.h+18,"↔");
@@ -250,7 +252,8 @@ function addShape(s){
     w:w,
     h:w*0.6,
     rotation:0,
-    color:"#000"
+    color:"#000",
+    locked:false
   };
   objects.unshift(selected);
   colorBtn.style.display="block";
@@ -268,7 +271,8 @@ function addText(){
     x:canvas.width*0.2,
     y:canvas.height*0.45,
     rotation:0,
-    color:"gold"
+    color:"gold",
+    locked:false
   };
   objects.push(selected);
   colorBtn.style.display="block";
@@ -277,6 +281,12 @@ function addText(){
 
 function changeFont(f){
   if(selected&&selected.type==="text"){selected.font=f;draw();}
+}
+
+function toggleLock(){
+  if(!selected) return;
+  selected.locked=!selected.locked;
+  draw();
 }
 
 function toggleColors(){
@@ -308,17 +318,22 @@ canvas.onmousedown=canvas.ontouchstart=e=>{
     const rx=cos*dx-sin*dy+o.w/2;
     const ry=sin*dx+cos*dy+o.h/2;
 
-    if(Math.hypot(rx+18,ry+18)<14){objects.splice(i,1);draw();return;}
-    if(Math.hypot(rx-(o.w+18),ry+18)<14){selected=o;mode="rotate";startAngle=Math.atan2(p.y-cy,p.x-cx)-o.rotation;break;}
-    if(Math.hypot(rx-(o.w+18),ry-(o.h+18))<14){selected=o;mode="resize";sx=p.x;sy=p.y;break;}
-    if(rx>0&&rx<o.w&&ry>0&&ry<o.h){selected=o;mode="move";sx=p.x;sy=p.y;break;}
+    if(!o.locked && Math.hypot(rx+18,ry+18)<14){objects.splice(i,1);draw();return;}
+    if(!o.locked && Math.hypot(rx-(o.w+18),ry+18)<14){selected=o;mode="rotate";startAngle=Math.atan2(p.y-cy,p.x-cx)-o.rotation;break;}
+    if(!o.locked && Math.hypot(rx-(o.w+18),ry-(o.h+18))<14){selected=o;mode="resize";sx=p.x;sy=p.y;break;}
+    if(!o.locked && rx>0&&rx<o.w&&ry>0&&ry<o.h){selected=o;mode="move";sx=p.x;sy=p.y;break;}
+
+    if(rx>0&&rx<o.w&&ry>0&&ry<o.h){
+      selected=o;
+      break;
+    }
   }
   colorBtn.style.display=selected?"block":"none";
   draw();
 };
 
 canvas.onmousemove=canvas.ontouchmove=e=>{
-  if(!selected||!mode)return;
+  if(!selected||!mode||selected.locked)return;
   e.preventDefault();
   const p=pos(e);
 
