@@ -1,31 +1,46 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Imaginary Gifts – Designer</title>
+<title>Imaginary Gifts Designer</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins&family=Great+Vibes&family=Dancing+Script&family=Playfair+Display&family=Montserrat&family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet">
 
 <style>
-body{margin:0;background:#eee;font-family:Poppins}
+body{
+  margin:0;
+  background:#eee;
+  font-family:Poppins;
+}
 
 /* LOGO */
 #brand{
   background:#000;
-  color:#d4af37;
   text-align:center;
   padding:30px;
   font-size:38px;
   font-family:"Cinzel Decorative",serif;
+  font-weight:700;
+  background-image:linear-gradient(
+    135deg,
+    #6e5200,
+    #f9e784,
+    #fff8dc,
+    #d4af37,
+    #6e5200
+  );
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
 }
 
 /* CANVAS */
 #canvas{
+  display:block;
+  margin:12px auto;
   background:#fff;
   border:2px solid #000;
   border-radius:18px;
-  display:block;
-  margin:10px auto;
   touch-action:none;
 }
 
@@ -37,8 +52,9 @@ body{margin:0;background:#eee;font-family:Poppins}
   grid-template-columns:1fr 1fr;
   gap:18px;
 }
+
 button,select{
-  padding:30px;
+  padding:28px;
   font-size:22px;
   background:#000;
   color:#f7f4e9;
@@ -46,17 +62,29 @@ button,select{
   border-radius:14px;
 }
 
-/* COLORS */
-#colors{grid-column:1/-1;display:none;text-align:center}
-.color{
-  width:40px;height:40px;border-radius:50%;
-  display:inline-block;margin:8px;border:2px solid #f7f4e9;
+#colors{
+  grid-column:1/-1;
+  display:none;
+  text-align:center;
 }
 
-/* SAVE */
+.color{
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  display:inline-block;
+  margin:8px;
+  border:2px solid #f7f4e9;
+}
+
 #save{
-  margin-top:50px;width:100%;padding:36px;
-  font-size:26px;background:#000;color:#f7f4e9;border:none;
+  margin-top:50px;
+  width:100%;
+  padding:36px;
+  font-size:26px;
+  background:#000;
+  color:#f7f4e9;
+  border:none;
 }
 </style>
 </head>
@@ -97,34 +125,47 @@ button,select{
 <script>
 const canvas=document.getElementById("canvas");
 const ctx=canvas.getContext("2d");
-const colorsDiv=document.getElementById("colors");
 const colorBtn=document.getElementById("colorBtn");
+const colorsDiv=document.getElementById("colors");
 
-function resizeCanvas(){
-  const s=Math.min(innerWidth-20,innerHeight*0.7);
-  canvas.width=s; canvas.height=s;
-  draw();
-}
-addEventListener("resize",resizeCanvas);
-
-let objects=[],selected=null;
-let mode=null,sx=0,sy=0,startAngle=0;
+let objects=[];
+let selected=null;
+let mode=null;
+let sx=0,sy=0,startAngle=0;
 let resizeStart={};
 
-const PALETTE=["#000","#fff","#5a3a22","#f7f4e9","#e74c3c","#3498db","#2ecc71","gold","silver","rosegold"];
+const PALETTE=[
+  "#000","#fff","#5a3a22","#f7f4e9",
+  "#e74c3c","#3498db","#2ecc71",
+  "gold","silver","rosegold"
+];
 
-function metallic(t,w){
-  const g=ctx.createLinearGradient(0,0,w,0);
-  if(t==="gold"){g.addColorStop(0,"#7a5c00");g.addColorStop(.5,"#fff3b0");g.addColorStop(1,"#7a5c00");}
-  if(t==="silver"){g.addColorStop(0,"#777");g.addColorStop(.5,"#fff");g.addColorStop(1,"#777");}
-  if(t==="rosegold"){g.addColorStop(0,"#8b5a5a");g.addColorStop(.5,"#f3c1c1");g.addColorStop(1,"#8b5a5a");}
-  return g;
+function resizeCanvas(){
+  const size=Math.min(innerWidth-20,innerHeight*0.65);
+  canvas.width=size;
+  canvas.height=size;
+  draw();
 }
+window.addEventListener("resize",resizeCanvas);
 
-function pos(e){
-  const r=canvas.getBoundingClientRect();
-  const t=e.touches?e.touches[0]:e;
-  return {x:(t.clientX-r.left)*(canvas.width/r.width),y:(t.clientY-r.top)*(canvas.height/r.height)};
+function metallic(type,w){
+  const g=ctx.createLinearGradient(0,0,w,0);
+  if(type==="gold"){
+    g.addColorStop(0,"#7a5c00");
+    g.addColorStop(.5,"#fff3b0");
+    g.addColorStop(1,"#7a5c00");
+  }
+  if(type==="silver"){
+    g.addColorStop(0,"#777");
+    g.addColorStop(.5,"#fff");
+    g.addColorStop(1,"#777");
+  }
+  if(type==="rosegold"){
+    g.addColorStop(0,"#8b5a5a");
+    g.addColorStop(.5,"#f3c1c1");
+    g.addColorStop(1,"#8b5a5a");
+  }
+  return g;
 }
 
 function draw(){
@@ -133,11 +174,12 @@ function draw(){
   objects.forEach(o=>{
     ctx.save();
 
-    /* TEXT: measure first */
     if(o.type==="text"){
       ctx.font=`${o.size}px ${o.font}`;
-      o.w=ctx.measureText(o.text).width;
-      o.h=o.size;
+      const m=ctx.measureText(o.text);
+      o.w=m.width;
+      o.h=m.actualBoundingBoxAscent+m.actualBoundingBoxDescent;
+      o.ascent=m.actualBoundingBoxAscent;
     }
 
     ctx.translate(o.x+o.w/2,o.y+o.h/2);
@@ -149,9 +191,9 @@ function draw(){
       : o.color;
 
     if(o.type==="shape") drawShape(o);
-    if(o.type==="text") ctx.fillText(o.text,0,0);
+    if(o.type==="text") ctx.fillText(o.text,0,o.ascent);
 
-    if(o===selected) drawIcons(o);
+    if(o===selected) drawHandles(o);
     ctx.restore();
   });
 }
@@ -174,7 +216,7 @@ function roundRect(x,y,w,h,r){
   ctx.arcTo(x,y,x+w,y,r);
 }
 
-function drawIcon(x,y,t){
+function icon(x,y,t){
   ctx.beginPath();
   ctx.arc(x,y,14,0,Math.PI*2);
   ctx.fillStyle="#fff";ctx.fill();
@@ -183,22 +225,21 @@ function drawIcon(x,y,t){
   ctx.fillText(t,x-6,y+6);
 }
 
-function drawIcons(o){
+function drawHandles(o){
   ctx.strokeStyle="#1e90ff";
   ctx.strokeRect(0,0,o.w,o.h);
-  drawIcon(-18,-18,"×");
-  drawIcon(o.w+18,o.h+18,"↔");
-  if(o.type==="text") drawIcon(o.w+18,-18,"↻");
+  icon(-18,-18,"×");
+  icon(o.w+18,o.h+18,"↔");
+  if(o.type==="text") icon(o.w+18,-18,"↻");
 }
 
-/* ADD SHAPE – CENTERED */
-function addShape(s){
-  if(!s)return;
+function addShape(type){
+  if(!type)return;
   objects=objects.filter(o=>o.type!=="shape");
   const w=canvas.width*0.6;
   selected={
     type:"shape",
-    shape:s,
+    shape:type,
     w:w,
     h:w*0.6,
     x:(canvas.width-w)/2,
@@ -211,7 +252,7 @@ function addShape(s){
 }
 
 function addText(){
-  const t=prompt("Text","Your Name");
+  const t=prompt("Text","YOUR NAME");
   if(!t)return;
   selected={
     type:"text",
@@ -219,7 +260,7 @@ function addText(){
     font:"Cinzel Decorative",
     size:canvas.width*0.08,
     x:canvas.width*0.2,
-    y:canvas.height*0.45,
+    y:canvas.height*0.3,
     rotation:0,
     color:"gold"
   };
@@ -229,7 +270,10 @@ function addText(){
 }
 
 function changeFont(f){
-  if(selected&&selected.type==="text"){selected.font=f;draw();}
+  if(selected && selected.type==="text"){
+    selected.font=f;
+    draw();
+  }
 }
 
 function toggleColors(){
@@ -237,20 +281,27 @@ function toggleColors(){
   PALETTE.forEach(c=>{
     const d=document.createElement("div");
     d.className="color";
-    d.style.background=c==="gold"?"linear-gradient(135deg,#7a5c00,#fff3b0,#7a5c00)"
+    d.style.background=
+      c==="gold"?"linear-gradient(135deg,#7a5c00,#fff3b0,#7a5c00)"
       :c==="silver"?"linear-gradient(135deg,#777,#fff,#777)"
-      :c==="rosegold"?"linear-gradient(135deg,#8b5a5a,#f3c1c1,#8b5a5a)":c;
+      :c==="rosegold"?"linear-gradient(135deg,#8b5a5a,#f3c1c1,#8b5a5a)"
+      :c;
     d.onclick=()=>{selected.color=c;colorsDiv.style.display="none";draw();}
     colorsDiv.appendChild(d);
   });
   colorsDiv.style.display=colorsDiv.style.display==="block"?"none":"block";
 }
 
-/* INTERACTION */
+function getPos(e){
+  const r=canvas.getBoundingClientRect();
+  const t=e.touches?e.touches[0]:e;
+  return {x:(t.clientX-r.left)*(canvas.width/r.width),y:(t.clientY-r.top)*(canvas.height/r.height)};
+}
+
 canvas.onmousedown=canvas.ontouchstart=e=>{
   e.preventDefault();
-  const p=pos(e);
-  selected=null; mode=null;
+  const p=getPos(e);
+  selected=null;mode=null;
 
   for(let i=objects.length-1;i>=0;i--){
     const o=objects[i];
@@ -258,17 +309,14 @@ canvas.onmousedown=canvas.ontouchstart=e=>{
 
     if(Math.hypot(rx+18,ry+18)<14){objects.splice(i,1);draw();return;}
 
-    if(Math.hypot(rx-(o.w+18),ry-(o.h+18))<14){
-      selected=o;
-      mode="resize";
-      resizeStart={w:o.w,h:o.h,x:o.x,y:o.y,cx:o.x+o.w/2,cy:o.y+o.h/2};
-      sx=p.x; sy=p.y;
-      break;
+    if(Math.abs(rx-o.w)<20 && Math.abs(ry-o.h)<20){
+      selected=o;mode="resize";
+      resizeStart={w:o.w,h:o.h,cx:o.x+o.w/2,cy:o.y+o.h/2};
+      sx=p.x;sy=p.y;break;
     }
 
     if(o.type==="text" && Math.hypot(rx-(o.w+18),ry+18)<14){
-      selected=o;
-      mode="rotate";
+      selected=o;mode="rotate";
       startAngle=Math.atan2(p.y-(o.y+o.h/2),p.x-(o.x+o.w/2))-o.rotation;
       break;
     }
@@ -284,7 +332,7 @@ canvas.onmousedown=canvas.ontouchstart=e=>{
 canvas.onmousemove=canvas.ontouchmove=e=>{
   if(!selected||!mode)return;
   e.preventDefault();
-  const p=pos(e);
+  const p=getPos(e);
 
   if(mode==="move"){
     selected.x+=p.x-sx;
@@ -293,21 +341,18 @@ canvas.onmousemove=canvas.ontouchmove=e=>{
 
   if(mode==="resize"){
     const dw=p.x-sx, dh=p.y-sy;
-    selected.w=Math.max(30,resizeStart.w+dw);
-    selected.h=Math.max(30,resizeStart.h+dh);
-
-    /* KEEP SHAPE CENTERED */
+    selected.w=Math.max(40,resizeStart.w+dw);
+    selected.h=Math.max(40,resizeStart.h+dh);
     selected.x=resizeStart.cx-selected.w/2;
     selected.y=resizeStart.cy-selected.h/2;
-
-    if(selected.type==="text") selected.size+=(dh)*0.4;
+    if(selected.type==="text") selected.size+=dh*0.4;
   }
 
   if(mode==="rotate"){
     selected.rotation=Math.atan2(p.y-(selected.y+selected.h/2),p.x-(selected.x+selected.w/2))-startAngle;
   }
 
-  sx=p.x; sy=p.y;
+  sx=p.x;sy=p.y;
   draw();
 };
 
