@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
 <title>Imaginary Gifts Designer</title>
@@ -7,11 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins&family=Great+Vibes&family=Dancing+Script&family=Playfair+Display&family=Montserrat&family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet">
 
 <style>
-body{
-  margin:0;
-  background:#eee;
-  font-family:Poppins;
-}
+body{margin:0;background:#eee;font-family:Poppins}
 
 /* LOGO */
 #brand{
@@ -21,14 +17,7 @@ body{
   font-size:38px;
   font-family:"Cinzel Decorative",serif;
   font-weight:700;
-  background-image:linear-gradient(
-    135deg,
-    #6e5200,
-    #f9e784,
-    #fff8dc,
-    #d4af37,
-    #6e5200
-  );
+  background-image:linear-gradient(135deg,#6e5200,#f9e784,#fff8dc,#d4af37,#6e5200);
   -webkit-background-clip:text;
   background-clip:text;
   color:transparent;
@@ -128,49 +117,28 @@ const ctx=canvas.getContext("2d");
 const colorBtn=document.getElementById("colorBtn");
 const colorsDiv=document.getElementById("colors");
 
-let objects=[];
-let selected=null;
-let mode=null;
-let sx=0,sy=0,startAngle=0;
-let resizeStart={};
+let objects=[],selected=null,mode=null;
+let sx=0,sy=0,startAngle=0,resizeStart={};
 
-const PALETTE=[
-  "#000","#fff","#5a3a22","#f7f4e9",
-  "#e74c3c","#3498db","#2ecc71",
-  "gold","silver","rosegold"
-];
+const PALETTE=["#000","#fff","#5a3a22","#f7f4e9","#e74c3c","#3498db","#2ecc71","gold","silver","rosegold"];
 
 function resizeCanvas(){
-  const size=Math.min(innerWidth-20,innerHeight*0.65);
-  canvas.width=size;
-  canvas.height=size;
+  const s=Math.min(innerWidth-20,innerHeight*0.65);
+  canvas.width=s; canvas.height=s;
   draw();
 }
-window.addEventListener("resize",resizeCanvas);
+addEventListener("resize",resizeCanvas);
 
-function metallic(type,w){
+function metallic(t,w){
   const g=ctx.createLinearGradient(0,0,w,0);
-  if(type==="gold"){
-    g.addColorStop(0,"#7a5c00");
-    g.addColorStop(.5,"#fff3b0");
-    g.addColorStop(1,"#7a5c00");
-  }
-  if(type==="silver"){
-    g.addColorStop(0,"#777");
-    g.addColorStop(.5,"#fff");
-    g.addColorStop(1,"#777");
-  }
-  if(type==="rosegold"){
-    g.addColorStop(0,"#8b5a5a");
-    g.addColorStop(.5,"#f3c1c1");
-    g.addColorStop(1,"#8b5a5a");
-  }
+  if(t==="gold"){g.addColorStop(0,"#7a5c00");g.addColorStop(.5,"#fff3b0");g.addColorStop(1,"#7a5c00");}
+  if(t==="silver"){g.addColorStop(0,"#777");g.addColorStop(.5,"#fff");g.addColorStop(1,"#777");}
+  if(t==="rosegold"){g.addColorStop(0,"#8b5a5a");g.addColorStop(.5,"#f3c1c1");g.addColorStop(1,"#8b5a5a");}
   return g;
 }
 
 function draw(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
-
   objects.forEach(o=>{
     ctx.save();
 
@@ -187,8 +155,7 @@ function draw(){
     ctx.translate(-o.w/2,-o.h/2);
 
     ctx.fillStyle=["gold","silver","rosegold"].includes(o.color)
-      ? metallic(o.color,o.w)
-      : o.color;
+      ? metallic(o.color,o.w) : o.color;
 
     if(o.type==="shape") drawShape(o);
     if(o.type==="text") ctx.fillText(o.text,0,o.ascent);
@@ -233,6 +200,7 @@ function drawHandles(o){
   if(o.type==="text") icon(o.w+18,-18,"↻");
 }
 
+/* ADD SHAPE */
 function addShape(type){
   if(!type)return;
   objects=objects.filter(o=>o.type!=="shape");
@@ -251,6 +219,7 @@ function addShape(type){
   draw();
 }
 
+/* ADD TEXT */
 function addText(){
   const t=prompt("Text","YOUR NAME");
   if(!t)return;
@@ -270,10 +239,7 @@ function addText(){
 }
 
 function changeFont(f){
-  if(selected && selected.type==="text"){
-    selected.font=f;
-    draw();
-  }
+  if(selected && selected.type==="text"){selected.font=f;draw();}
 }
 
 function toggleColors(){
@@ -292,30 +258,40 @@ function toggleColors(){
   colorsDiv.style.display=colorsDiv.style.display==="block"?"none":"block";
 }
 
-function getPos(e){
+function pos(e){
   const r=canvas.getBoundingClientRect();
   const t=e.touches?e.touches[0]:e;
   return {x:(t.clientX-r.left)*(canvas.width/r.width),y:(t.clientY-r.top)*(canvas.height/r.height)};
 }
 
+/* INTERACTION */
 canvas.onmousedown=canvas.ontouchstart=e=>{
   e.preventDefault();
-  const p=getPos(e);
+  const p=pos(e);
   selected=null;mode=null;
 
   for(let i=objects.length-1;i>=0;i--){
     const o=objects[i];
-    const rx=p.x-o.x, ry=p.y-o.y;
+    let dx=p.x-(o.x+o.w/2);
+    let dy=p.y-(o.y+o.h/2);
 
-    if(Math.hypot(rx+18,ry+18)<14){objects.splice(i,1);draw();return;}
+    if(o.type==="text"){
+      const c=Math.cos(-o.rotation),s=Math.sin(-o.rotation);
+      const x=dx*c-dy*s,y=dx*s+dy*c;
+      dx=x;dy=y;
+    }
 
-    if(Math.abs(rx-o.w)<20 && Math.abs(ry-o.h)<20){
+    const rx=dx+o.w/2,ry=dy+o.h/2;
+
+    if(Math.hypot(rx+18,ry+18)<18){objects.splice(i,1);draw();return;}
+
+    if(Math.abs(rx-o.w)<25 && Math.abs(ry-o.h)<25){
       selected=o;mode="resize";
       resizeStart={w:o.w,h:o.h,cx:o.x+o.w/2,cy:o.y+o.h/2};
       sx=p.x;sy=p.y;break;
     }
 
-    if(o.type==="text" && Math.hypot(rx-(o.w+18),ry+18)<14){
+    if(o.type==="text" && Math.hypot(rx-(o.w+18),ry+18)<18){
       selected=o;mode="rotate";
       startAngle=Math.atan2(p.y-(o.y+o.h/2),p.x-(o.x+o.w/2))-o.rotation;
       break;
@@ -325,6 +301,7 @@ canvas.onmousedown=canvas.ontouchstart=e=>{
       selected=o;mode="move";sx=p.x;sy=p.y;break;
     }
   }
+
   colorBtn.style.display=selected?"block":"none";
   draw();
 };
@@ -332,22 +309,17 @@ canvas.onmousedown=canvas.ontouchstart=e=>{
 canvas.onmousemove=canvas.ontouchmove=e=>{
   if(!selected||!mode)return;
   e.preventDefault();
-  const p=getPos(e);
+  const p=pos(e);
 
-  if(mode==="move"){
-    selected.x+=p.x-sx;
-    selected.y+=p.y-sy;
-  }
-
+  if(mode==="move"){selected.x+=p.x-sx;selected.y+=p.y-sy;}
   if(mode==="resize"){
-    const dw=p.x-sx, dh=p.y-sy;
+    const dw=p.x-sx,dh=p.y-sy;
     selected.w=Math.max(40,resizeStart.w+dw);
     selected.h=Math.max(40,resizeStart.h+dh);
     selected.x=resizeStart.cx-selected.w/2;
     selected.y=resizeStart.cy-selected.h/2;
     if(selected.type==="text") selected.size+=dh*0.4;
   }
-
   if(mode==="rotate"){
     selected.rotation=Math.atan2(p.y-(selected.y+selected.h/2),p.x-(selected.x+selected.w/2))-startAngle;
   }
