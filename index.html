@@ -13,7 +13,7 @@ body{
   font-family:Poppins;
 }
 
-/* LOGO */
+/* LOGO HEADER */
 #brand{
   background:#000;
   text-align:center;
@@ -31,7 +31,7 @@ body{
   border:2px solid #000;
   border-radius:18px;
   display:block;
-  margin:100px auto;
+  margin:10px auto;
   touch-action:none;
 }
 
@@ -90,10 +90,8 @@ button,select{
 
 <canvas id="canvas"></canvas>
 
-<!-- COLOR PALETTE ABOVE BUTTON -->
 <div id="colors"></div>
 
-<!-- SELECT COLOR BUTTON -->
 <button id="colorBtn" class="big-btn" onclick="toggleColors()">SELECT COLOUR</button>
 
 <div id="controls">
@@ -133,10 +131,13 @@ let mode=null,sx=0,sy=0,startAngle=0;
 
 const PALETTE=["#000","#fff","#5a3a22","#f7f4e9","#e74c3c","#3498db","#2ecc71","gold","silver","rosegold"];
 
+/* 🔴 ONLY CHANGE IS HERE */
 function resizeCanvas(){
-  const s=Math.min(innerWidth-20,innerHeight*0.7);
-  canvas.width=s;
-  canvas.height=s;
+  const width = Math.min(innerWidth - 20, 900);
+  const height = 700;   // 👈 fixed height
+
+  canvas.width = width;
+  canvas.height = height;
   draw();
 }
 addEventListener("resize",resizeCanvas);
@@ -152,8 +153,10 @@ function metallic(type,w){
 function pos(e){
   const r=canvas.getBoundingClientRect();
   const t=e.touches?e.touches[0]:e;
-  return {x:(t.clientX-r.left)*(canvas.width/r.width),
-          y:(t.clientY-r.top)*(canvas.height/r.height)};
+  return {
+    x:(t.clientX-r.left)*(canvas.width/r.width),
+    y:(t.clientY-r.top)*(canvas.height/r.height)
+  };
 }
 
 function draw(){
@@ -296,7 +299,8 @@ function saveImage(){
   a.click();
 }
 
-resizeCanvas();draw();
+resizeCanvas();
+draw();
 </script>
 
 </body>
