@@ -286,11 +286,30 @@ canvas.onmousedown=canvas.ontouchstart=e=>{
     if(!o.locked && Math.hypot(rx-(o.w+18),ry-(o.h+18))<14){
       selected=o;mode="resize";sx=p.x;sy=p.y;break;
     }
-    if(rx>0&&rx<o.w&&ry>0&&ry<o.h){
-      selected=o;
-      if(!o.locked){mode="move";sx=p.x;sy=p.y;}
-      break;
+    if(rx>0 && rx<o.w && ry>0 && ry<o.h){
+
+  /* ✅ DOUBLE CLICK / DOUBLE TAP TO EDIT TEXT */
+  if(o.type === "text" && !o.locked){
+    const now = Date.now();
+    if(now - lastTapTime < 350){
+      const nt = prompt("Edit Text", o.text);
+      if(nt !== null){
+        o.text = nt;
+        draw();
+      }
+      return;
     }
+    lastTapTime = now;
+  }
+
+  selected = o;
+  if(!o.locked){
+    mode = "move";
+    sx = p.x;
+    sy = p.y;
+  }
+  break;
+}
   }
   document.getElementById("colorBtn").style.display=selected?"block":"none";
   draw();
