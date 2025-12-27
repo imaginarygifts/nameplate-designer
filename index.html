@@ -410,16 +410,35 @@ function toggleCanvasPalette(){
   p.style.display=p.style.display==="block"?"none":"block";
 }
 
-function loadImageObject(url,type){
+async function loadImageObject(url, type){
   saveState();
-  const img=new Image();
-  img.crossOrigin="anonymous";
-  img.onload=()=>{
-    selected={type:type,img:img,x:canvas.width*0.3,y:canvas.height*0.3,w:canvas.width*0.3,h:(img.height/img.width)*(canvas.width*0.3),rotation:0,color:"gold",locked:false};
-    objects.push(selected);colorBtn.style.display="block";draw();
+
+  const res = await fetch(url);
+  const text = await res.text();
+
+  const blob = new Blob([text], { type: "image/svg+xml" });
+  const blobUrl = URL.createObjectURL(blob);
+
+  const img = new Image();
+  img.onload = () => {
+    selected = {
+      type: type,
+      img: img,
+      x: canvas.width * 0.3,
+      y: canvas.height * 0.3,
+      w: canvas.width * 0.3,
+      h: (img.height / img.width) * (canvas.width * 0.3),
+      rotation: 0,
+      color: "gold",
+      locked: false
+    };
+    objects.push(selected);
+    colorBtn.style.display = "block";
+    draw();
   };
-  img.src=url;
+  img.src = blobUrl;
 }
+  
 function toggleLogoPalette(){
   const p=document.getElementById("logoPalette");
   p.innerHTML="";
