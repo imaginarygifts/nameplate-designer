@@ -9,7 +9,7 @@
 <style>
 body{margin:0;background:#000;font-family:Poppins}
 
-/* LOGO */
+/* BRAND */
 #brand{
   background:#000;
   text-align:center;
@@ -41,7 +41,6 @@ body{margin:0;background:#000;font-family:Poppins}
   color:#f7f4e9;
   border:2px solid #f7f4e9;
   border-radius:14px;
-  display:none;
 }
 .small-btn{
   display:block;
@@ -155,48 +154,48 @@ button,select{
 <button class="big-btn" style="display:block" onclick="saveImage()">SAVE DESIGN</button>
 
 <script>
-/* ---------- CORE ---------- */
+/* CORE */
 const canvas=document.getElementById("canvas");
 const ctx=canvas.getContext("2d");
 
 let canvasBg="#fff";
 let objects=[],selected=null;
-let mode=null,sx=0,sy=0,startAngle=0,lastTapTime=0;
+let mode=null,sx=0,sy=0,startAngle=0;
 
-/* ---------- HISTORY ---------- */
+/* HISTORY */
 let history=[],redoStack=[];
 function saveState(){
   history.push(JSON.stringify({objects,canvasBg}));
-  if(history.length>50) history.shift();
   redoStack=[];
 }
 function undo(){
-  if(!history.length) return;
+  if(!history.length)return;
   redoStack.push(JSON.stringify({objects,canvasBg}));
   const s=JSON.parse(history.pop());
   objects=s.objects;canvasBg=s.canvasBg;selected=null;draw();
 }
 function redo(){
-  if(!redoStack.length) return;
+  if(!redoStack.length)return;
   history.push(JSON.stringify({objects,canvasBg}));
   const s=JSON.parse(redoStack.pop());
   objects=s.objects;canvasBg=s.canvasBg;selected=null;draw();
 }
 
-/* ---------- CONSTANTS ---------- */
+/* COLORS */
 const ELEMENT_COLORS=["#000","#fff","#5a3a22","#f7f4e9","#e74c3c","#3498db","#2ecc71","gold","silver","rosegold"];
 const CANVAS_BACKGROUNDS=["#ffffff","#000000","#cccccc","#5a3a22"];
 
-/* ---------- SVG STYLE SHAPES (PATHS) ---------- */
+/* SVG SHAPES */
+const SVG_VIEWBOX=1400;
 const SVG_SHAPES={
-  design6:"M651 730c7,6 18,12 27,1 17,-22 -44,-58 -45,-142 0,-51 0,-103 0,-155 0,-27 -1,-44 -15,-63 -9,-13 -26,-26 -48,-31 -28,-5 -135,3 -152,-2 -3,-12 -1,-62 -1,-77 0,-27 -3,-51 21,-58 14,-5 119,1 152,-3 66,-9 97,-53 140,-95 6,-6 12,-19 1,-27 -22,-17 -58,45 -142,45 -51,0 -103,0 -155,0 -25,0 -46,2 -63,15 -13,10 -26,26 -30,48 -4,20 1,146 -4,151 -4,4 -66,2 -76,2 -27,0 -51,3 -58,-21 -5,-14 1,-119 -3,-152 -9,-63 -53,-98 -95,-140 -6,-6 -18,-12 -27,-1 -17,22 45,57 45,142 0,51 0,103 0,155 0,27 1,44 15,63 10,13 26,26 48,31 30,5 133,-3 152,2 3,12 1,61 1,77 0,70 -6,60 -97,60 -77,0 -118,-5 -176,57 -14,14 -27,25 -39,39 -7,7 -13,18 -2,27 22,17 58,-45 142,-45 51,0 103,0 155,0 28,0 43,-1 63,-15 13,-9 26,-26 31,-47 5,-27 -3,-140 3,-152 8,-4 62,-2 77,-2 26,0 50,-3 57,21 5,14 -1,119 3,152 9,65 53,97 95,140zm-202 -241c6,45 76,39 71,-9 -5,-46 -77,-38 -71,9zm-213 0c2,18 19,33 40,31 18,-2 33,-19 31,-40 -5,-46 -76,-39 -71,9zm242 -252c-47,9 -32,79 13,70 18,-4 33,-21 29,-42 -4,-18 -21,-32 -42,-28zm-213 0c-47,9 -32,79 13,70 18,-4 33,-21 29,-42 -4,-18 -21,-32 -42,-28z",
+  design6:"M651 730c7,6 18,12 27,1 17,-22 -44,-58 -45,-142 0,-51 0,-103 0,-155 0,-27 -1,-44 -15,-63 -9,-13 -26,-26 -48,-31 -28,-5 -135,3 -152,-2 -3,-12 -1,-62 -1,-77 0,-27 -3,-51 21,-58 14,-5 119,1 152,-3 66,-9 97,-53 140,-95",
   design7:"M100 10 L190 60 L100 110 L10 60 Z",
   design8:"M100 10 A90 50 0 1 1 99 10",
   design9:"M10 10 H190 V110 H10 Z M30 30 H170 V90 H30 Z",
   design10:"M100 10 C150 10 190 60 100 110 C10 60 50 10 100 10 Z"
 };
 
-/* ---------- CANVAS SIZE ---------- */
+/* CANVAS SIZE */
 function resizeCanvas(){
   canvas.width=Math.min(innerWidth-20,900);
   canvas.height=700;
@@ -204,7 +203,7 @@ function resizeCanvas(){
 }
 addEventListener("resize",resizeCanvas);
 
-/* ---------- METALLIC ---------- */
+/* METALLIC */
 function metallic(type,w){
   const g=ctx.createLinearGradient(0,0,w,0);
   if(type==="gold"){g.addColorStop(0,"#7a5c00");g.addColorStop(.5,"#fff3b0");g.addColorStop(1,"#7a5c00");}
@@ -213,7 +212,7 @@ function metallic(type,w){
   return g;
 }
 
-/* ---------- DRAW ---------- */
+/* DRAW */
 function draw(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
   ctx.fillStyle=canvasBg;
@@ -244,10 +243,9 @@ function draw(){
   });
 }
 
-/* ---------- SHAPES ---------- */
+/* SHAPES */
 function drawShape(o){
   ctx.beginPath();
-
   if(o.shape==="rect") ctx.rect(0,0,o.w,o.h);
   else if(o.shape==="rounded") roundRect(0,0,o.w,o.h,20);
   else if(o.shape==="circle") ctx.arc(o.w/2,o.h/2,o.w/2,0,Math.PI*2);
@@ -256,13 +254,13 @@ function drawShape(o){
   else if(SVG_SHAPES[o.shape]){
     const path=new Path2D(SVG_SHAPES[o.shape]);
     ctx.save();
-    ctx.scale(o.w/4000,o.h/4000);
+    ctx.scale(o.w/SVG_VIEWBOX,o.h/SVG_VIEWBOX);
     ctx.fill(path);
     ctx.restore();
   }
-
   ctx.fill();
 }
+
 function roundRect(x,y,w,h,r){
   ctx.moveTo(x+r,y);
   ctx.arcTo(x+w,y,x+w,y+h,r);
@@ -271,7 +269,7 @@ function roundRect(x,y,w,h,r){
   ctx.arcTo(x,y,x+w,y,r);
 }
 
-/* ---------- HANDLES ---------- */
+/* HANDLES */
 function drawIcon(x,y,t){
   ctx.beginPath();
   ctx.arc(x,y,14,0,Math.PI*2);
@@ -288,7 +286,7 @@ function drawHandles(o){
   drawIcon(o.w+18,o.h+18,"↔");
 }
 
-/* ---------- INTERACTION ---------- */
+/* INTERACTION */
 function getPos(e){
   const r=canvas.getBoundingClientRect();
   const t=e.touches?e.touches[0]:e;
@@ -311,7 +309,7 @@ canvas.onmousedown=canvas.ontouchstart=e=>{
     if(!o.locked&&Math.hypot(rx+18,ry+18)<14){objects.splice(i,1);draw();return;}
     if(!o.locked&&Math.hypot(rx-(o.w+18),ry+18)<14){selected=o;mode="rotate";startAngle=Math.atan2(p.y-cy,p.x-cx)-o.rotation;break;}
     if(!o.locked&&Math.hypot(rx-(o.w+18),ry-(o.h+18))<14){selected=o;mode="resize";sx=p.x;sy=p.y;break;}
-    if(rx>0&&rx<o.w&&ry>0&&ry<o.h){selected=o;if(!o.locked){mode="move";sx=p.x;sy=p.y;}break;}
+    if(rx>0&&rx<o.w&&ry>0&&ry<o.h){selected=o;mode="move";sx=p.x;sy=p.y;break;}
   }
 
   colorBtn.style.display=selected?"block":"none";
@@ -322,30 +320,24 @@ canvas.onmousemove=canvas.ontouchmove=e=>{
   if(!selected||!mode||selected.locked)return;
   e.preventDefault();
   const p=getPos(e);
-
   if(mode==="move"){selected.x+=p.x-sx;selected.y+=p.y-sy;}
-  if(mode==="resize"){
-    selected.w+=p.x-sx;
-    selected.h+=p.y-sy;
-    if(selected.type==="text") selected.size+=(p.y-sy)*0.5;
-  }
+  if(mode==="resize"){selected.w+=p.x-sx;selected.h+=p.y-sy;}
   if(mode==="rotate"){
     const cx=selected.x+selected.w/2,cy=selected.y+selected.h/2;
     selected.rotation=Math.atan2(p.y-cy,p.x-cx)-startAngle;
   }
-
   sx=p.x;sy=p.y;draw();
 };
 
 canvas.onmouseup=canvas.ontouchend=()=>mode=null;
 
-/* ---------- CONTROLS ---------- */
+/* CONTROLS */
 function addShape(s){
   saveState();
   if(!s)return;
   objects=objects.filter(o=>o.type!=="shape");
   const w=canvas.width*0.6;
-  selected={type:"shape",shape:s,x:(canvas.width-w)/2,y:(canvas.height-w*0.6)/2,w:w,h:w*0.6,rotation:0,color:"#000",locked:false};
+  selected={type:"shape",shape:s,x:(canvas.width-w)/2,y:(canvas.height-w*0.6)/2,w:w,h:w*0.6,rotation:0,color:"gold",locked:false};
   objects.push(selected);
   colorBtn.style.display="block";
   draw();
@@ -359,8 +351,8 @@ function addText(){
   colorBtn.style.display="block";
   draw();
 }
-function changeFont(f){saveState();if(selected&&selected.type==="text"){selected.font=f;draw();}}
-function toggleLock(){saveState();if(selected){selected.locked=!selected.locked;draw();}}
+function changeFont(f){if(selected&&selected.type==="text"){selected.font=f;draw();}}
+function toggleLock(){if(selected){selected.locked=!selected.locked;draw();}}
 
 function toggleColors(){
   const c=document.getElementById("colors");
@@ -368,11 +360,12 @@ function toggleColors(){
   ELEMENT_COLORS.forEach(col=>{
     const d=document.createElement("div");
     d.className="thumb";
-    if(col==="gold")d.style.background="linear-gradient(135deg,#7a5c00,#fff3b0,#7a5c00)";
-    else if(col==="silver")d.style.background="linear-gradient(135deg,#777,#fff,#777)";
-    else if(col==="rosegold")d.style.background="linear-gradient(135deg,#8b5a5a,#f3c1c1,#8b5a5a)";
-    else d.style.background=col;
-    d.onclick=()=>{saveState();selected.color=col;c.style.display="none";draw();}
+    d.style.background=
+      col==="gold"?"linear-gradient(135deg,#7a5c00,#fff3b0,#7a5c00)":
+      col==="silver"?"linear-gradient(135deg,#777,#fff,#777)":
+      col==="rosegold"?"linear-gradient(135deg,#8b5a5a,#f3c1c1,#8b5a5a)":
+      col;
+    d.onclick=()=>{selected.color=col;c.style.display="none";draw();}
     c.appendChild(d);
   });
   c.style.display=c.style.display==="block"?"none":"block";
@@ -385,7 +378,7 @@ function toggleCanvasPalette(){
     const d=document.createElement("div");
     d.className="thumb";
     d.style.background=c;
-    d.onclick=()=>{saveState();canvasBg=c;p.style.display="none";draw();}
+    d.onclick=()=>{canvasBg=c;p.style.display="none";draw();}
     p.appendChild(d);
   });
   p.style.display=p.style.display==="block"?"none":"block";
