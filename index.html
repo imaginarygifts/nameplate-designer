@@ -337,7 +337,7 @@ function addShape(s){
   if(!s)return;
   objects=objects.filter(o=>o.type!=="shape");
   const w=canvas.width*0.6;
-  selected={type:"shape",shape:s,x:(canvas.width-w)/2,y:(canvas.height-w*0.6)/2,w:w,h:w*0.6,rotation:0,color:"gold",locked:false};
+  selected={type:"shape",shape:s,x:(canvas.width-w)/2,y:(canvas.height-w*0.6)/2,w:w,h:w*0.6,rotation:0,color:"#000",locked:false};
   objects.push(selected);
   colorBtn.style.display="block";
   draw();
