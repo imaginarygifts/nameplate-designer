@@ -202,6 +202,12 @@ let mode=null,sx=0,sy=0,startAngle=0,lastTapTime=0;
 
 let history=[],redoStack=[];
 
+function clearSelection(){
+  selected = null;
+  document.getElementById("sizeSlider").style.display = "none";
+  colorBtn.style.display = "none";
+}
+
 /* VECTOR LIBRARY (200x200) */
 
 const VECTOR_LOGOS={
@@ -454,9 +460,26 @@ function redo(){if(!redoStack.length)return;history.push(JSON.stringify({objects
 function addShape(s){
   saveState();
   if(!s)return;
+
+  clearSelection(); // ✅ IMPORTANT
+
   const w=canvas.width*0.6;
-  selected={type:"shape",shape:s,x:(canvas.width-w)/2,y:(canvas.height-w*0.6)/2,w:w,h:w*0.6,rotation:0,color:"#000",locked:false};
-  objects.push(selected);draw();
+  selected={
+    type:"shape",
+    shape:s,
+    x:(canvas.width-w)/2,
+    y:(canvas.height-w*0.6)/2,
+    w:w,
+    h:w*0.6,
+    rotation:0,
+    color:"#000",
+    locked:false
+  };
+
+  objects.push(selected);
+  updateSizeSlider();
+  colorBtn.style.display = "block";
+  draw();
 }
 
 function addVector(kind,key){
@@ -539,8 +562,7 @@ function saveImage(){
 
 resizeCanvas();
 draw();
-colorBtn.style.display = "none";
-document.getElementById("sizeSlider").style.display = "none";
+
 </script>
 
 </body>
