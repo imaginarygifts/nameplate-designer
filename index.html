@@ -89,13 +89,18 @@ button,select{
 
 <div id="controls">
   <select onchange="addShape(this.value)">
-    <option value="">Select Shape</option>
-    <option value="rect">Rectangle</option>
-    <option value="rounded">Rounded</option>
-    <option value="circle">Circle</option>
-    <option value="oval">Oval</option>
-    <option value="pill">Pill</option>
-  </select>
+  <option value="">Select Shape</option>
+  <option value="rect">Rectangle</option>
+  <option value="rounded">Rounded</option>
+  <option value="circle">Circle</option>
+  <option value="oval">Oval</option>
+  <option value="pill">Pill</option>
+  <option value="design1">Design 1</option>
+  <option value="design2">Design 2</option>
+  <option value="design3">Design 3</option>
+  <option value="design4">Design 4</option>
+  <option value="design5">Design 5</option>
+</select>
 
   <div class="right-tools">
     <button class="mini-btn" onclick="undo()">↶</button>
@@ -150,6 +155,7 @@ let mode=null,sx=0,sy=0,startAngle=0,lastTapTime=0;
 let history=[],redoStack=[];
 
 /* VECTOR LIBRARY (200x200) */
+
 const VECTOR_LOGOS={
   om:"M25 60c0,1 2,4 3,6 1,2 2,4 3,6 1,1 5,11 6,11 3,0 11,-8 22,-12 9,-3 20,-3 26,3 3,3 5,8 2,13 -2,4 -5,6 -9,7 -12,5 -19,2 -29,1l10 31c1,0 4,-1 5,-2 15,-3 31,2 30,20 -1,9 -6,15 -11,18 -5,4 -14,7 -22,7 -19,0 -31,-11 -38,-21 -9,-13 -12,-27 -15,-43 -1,1 -1,5 -2,7 -1,7 1,17 2,24 3,14 8,26 16,36 8,10 18,18 31,21 34,9 58,-15 56,-45 -1,-5 -2,-10 -3,-14 -1,-2 -2,-4 -3,-6 -1,-2 -2,-4 -3,-6 5,2 8,4 14,3 12,-3 22,-15 28,-24 1,-2 2,-4 3,-6 3,-4 8,-9 14,-11 11,-3 17,6 19,14 6,18 0,40 -16,49 -13,9 -27,4 -35,-7 -2,-2 -3,-4 -4,-6l-3 -5c0,1 -1,7 -1,10 -1,4 0,9 1,13 4,21 24,34 44,25 12,-5 20,-14 24,-27 5,-14 5,-30 2,-45 -3,-14 -11,-25 -19,-31 -11,-9 -26,-11 -38,-2 -5,3 -7,5 -10,9 -5,5 -8,13 -12,20 -3,5 -6,11 -12,13 -7,1 -13,-3 -19,-5 -1,0 -1,0 -1,0 1,-1 2,-2 3,-3 8,-6 14,-11 16,-22 4,-14 0,-28 -9,-34 -15,-12 -48,-6 -63,7 -1,0 -2,2 -3,3zm151 -15c0,-1 -1,-2 -1,-3l-13 -16c-1,0 -3,2 -4,3 -4,4 -8,6 -13,9 -14,8 -32,7 -45,-3 -4,-4 -7,-8 -9,-12 -1,-2 -1,-4 -2,-6 -1,1 -1,7 0,9 0,8 4,16 9,22 5,6 13,12 22,14 15,4 33,-1 46,-9 3,-1 9,-6 10,-8zm-70 -22c2,2 5,4 7,6 0,1 0,1 1,1l10 9 4 -4c2,-2 12,-12 12,-13l-4 -4c-2,-3 -7,-7 -9,-9l-5 -4 -6 7c-2,2 -9,10 -10,11z",
   lotus:"M100 20 L120 60 L160 80 L120 100 L100 160 L80 100 L40 80 L80 60 Z",
@@ -164,6 +170,15 @@ const VECTOR_BORDERS={
   rounded:"M20 10 H180 Q190 10 190 20 V180 Q190 190 180 190 H20 Q10 190 10 180 V20 Q10 10 20 10 Z",
   frame:"M40 10 H160 V40 H190 V160 H160 V190 H40 V160 H10 V40 H40 Z",
   wave:"M10 30 Q50 10 90 30 T170 30 V170 Q130 190 90 170 T10 170 Z"
+};
+
+/* VECTOR SHAPES (200x200 design space) */
+const VECTOR_SHAPES = {
+  design1: "M20 20 H180 V180 H20 Z",
+  design2: "M100 10 L190 100 L100 190 L10 100 Z",
+  design3: "M100 20 C40 20 20 100 100 180 C180 100 160 20 100 20 Z",
+  design4: "M20 60 Q100 10 180 60 V140 Q100 190 20 140 Z",
+  design5: "M40 20 H160 V60 H120 V180 H80 V60 H40 Z"
 };
 
 const ELEMENT_COLORS=["#000","#fff","#5a3a22","#e74c3c","#3498db","#2ecc71","gold","silver","rosegold"];
@@ -224,13 +239,25 @@ function draw(){
 
 function drawShape(o){
   ctx.beginPath();
+
   if(o.shape==="rect") ctx.rect(0,0,o.w,o.h);
-  if(o.shape==="rounded") roundRect(0,0,o.w,o.h,20);
-  if(o.shape==="circle") ctx.arc(o.w/2,o.h/2,o.w/2,0,Math.PI*2);
-  if(o.shape==="oval") ctx.ellipse(o.w/2,o.h/2,o.w/2,o.h/2,0,0,Math.PI*2);
-  if(o.shape==="pill") roundRect(0,0,o.w,o.h,o.h/2);
+  else if(o.shape==="rounded") roundRect(0,0,o.w,o.h,20);
+  else if(o.shape==="circle") ctx.arc(o.w/2,o.h/2,o.w/2,0,Math.PI*2);
+  else if(o.shape==="oval") ctx.ellipse(o.w/2,o.h/2,o.w/2,o.h/2,0,0,Math.PI*2);
+  else if(o.shape==="pill") roundRect(0,0,o.w,o.h,o.h/2);
+
+  /* CUSTOM SVG SHAPES */
+  else if(VECTOR_SHAPES[o.shape]){
+    ctx.save();
+    ctx.scale(o.w/200, o.h/200);
+    ctx.fill(new Path2D(VECTOR_SHAPES[o.shape]));
+    ctx.restore();
+    return;
+  }
+
   ctx.fill();
 }
+
 
 function roundRect(x,y,w,h,r){
   ctx.moveTo(x+r,y);
@@ -281,6 +308,18 @@ canvas.onmousedown=canvas.ontouchstart=e=>{
     if(!o.locked&&Math.hypot(rx-(o.w+18),ry-(o.h+18))<14){selected=o;mode="resize";sx=p.x;sy=p.y;break;}
     if(rx>0&&rx<o.w&&ry>0&&ry<o.h){selected=o;if(!o.locked){mode="move";sx=p.x;sy=p.y;}break;}
   }
+if(o.type==="text" && !o.locked){
+  const now = Date.now();
+  if(now - lastTapTime < 350){
+    const nt = prompt("Edit Text", o.text);
+    if(nt !== null){
+      o.text = nt;
+      draw();
+    }
+    return;
+  }
+  lastTapTime = now;
+}
   colorBtn.style.display=selected?"block":"none";
   draw();
 };
