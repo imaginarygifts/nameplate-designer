@@ -58,7 +58,7 @@ button,select{
 }
 
 .right-tools{display:flex;gap:10px}
-.mini-btn{padding:14px 16px;font-size:40px}
+.mini-btn{padding:14px 16px;font-size:80px}
 
 .palette{
   display:none;
@@ -103,9 +103,9 @@ button,select{
 </select>
 
   <div class="right-tools">
-    <button class="mini-btn" onclick="undo()">↶</button>
+    <button class="mini-btn" onclick="undo()">undo</button>
     <button class="mini-btn" onclick="toggleLock()">🔒</button>
-    <button class="mini-btn" onclick="redo()">↷</button>
+    <button class="mini-btn" onclick="redo()"redo</button>
   </div>
 </div>
 
@@ -367,7 +367,7 @@ function addVector(kind,key){
   saveState();
   const path=kind==="logo"?VECTOR_LOGOS[key]:VECTOR_BORDERS[key];
   const size=kind==="border"?canvas.width*0.8:canvas.width*0.25;
-  selected={type:"vector",path,x:(canvas.width-size)/2,y:(canvas.height-size)/2,w:size,h:size,rotation:0,color:"#000",locked:false};
+  selected={type:"vector",path,x:(canvas.width-size)/2,y:(canvas.height-size)/2,w:size,h:size,rotation:0,color:"gold",locked:false};
   objects.push(selected);draw();
 }
 
