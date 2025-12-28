@@ -9,14 +9,13 @@
 <style>
 body{margin:0;background:#000;font-family:Poppins}
 
-/* BRAND */
+/* LOGO */
 #brand{
-  background:#000;
   text-align:center;
   padding:30px;
   font-size:60px;
   font-family:"Cinzel Decorative",serif;
-  background-image:linear-gradient(135deg,#7a5c00,#fff3b0,#7a5c00);
+  background:linear-gradient(135deg,#7a5c00,#fff3b0,#7a5c00);
   -webkit-background-clip:text;
   -webkit-text-fill-color:transparent;
 }
@@ -24,7 +23,6 @@ body{margin:0;background:#000;font-family:Poppins}
 /* CANVAS */
 #canvas{
   background:#fff;
-  border:2px solid #000;
   border-radius:18px;
   display:block;
   margin:10px auto;
@@ -32,69 +30,6 @@ body{margin:0;background:#000;font-family:Poppins}
 }
 
 /* BUTTONS */
-.big-btn{
-  width:100%;
-  margin:10px auto;
-  padding:36px;
-  font-size:26px;
-  background:#000;
-  color:#f7f4e9;
-  border:2px solid #f7f4e9;
-  border-radius:14px;
-}
-.small-btn{
-  display:block;
-  margin:10px auto;
-  padding:12px 24px;
-  font-size:14px;
-  background:#000;
-  color:#fff;
-  border:1px solid #fff;
-  border-radius:10px;
-}
-
-/* MINI TOOLS */
-.right-tools{display:flex;gap:10px}
-.mini-btn{
-  padding:14px 16px;
-  font-size:50px;
-  background:#000;
-  color:#fff;
-  border:2px solid #fff;
-  border-radius:12px;
-}
-
-/* PALETTE */
-.palette{
-  display:none;
-  overflow-x:auto;
-  white-space:nowrap;
-  padding:10px;
-  text-align:center;
-}
-.thumb{
-  width:50px;height:50px;
-  display:inline-block;
-  border-radius:8px;
-  margin-right:10px;
-  border:2px solid #fff;
-}
-
-/* CONTROLS */
-#controls{
-  background:#000;
-  padding:18px;
-  display:grid;
-  grid-template-columns:1fr auto;
-  gap:18px;
-  align-items:center;
-}
-.control-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:18px;
-  margin-top:18px;
-}
 button,select{
   padding:30px;
   font-size:22px;
@@ -102,6 +37,37 @@ button,select{
   color:#f7f4e9;
   border:2px solid #f7f4e9;
   border-radius:14px;
+}
+
+.big-btn{width:100%;margin:10px 0}
+.small-btn{padding:10px 20px;font-size:14px}
+
+#controls{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:18px;
+  padding:18px;
+}
+
+.right-tools{display:flex;gap:10px}
+
+.mini-btn{
+  padding:14px;
+  font-size:40px;
+}
+
+.palette{
+  display:none;
+  overflow-x:auto;
+  padding:10px;
+  white-space:nowrap;
+}
+.thumb{
+  width:50px;height:50px;
+  border-radius:8px;
+  border:2px solid #fff;
+  display:inline-block;
+  margin-right:10px;
 }
 </style>
 </head>
@@ -111,11 +77,11 @@ button,select{
 <div id="brand">Imaginary Gifts</div>
 <canvas id="canvas"></canvas>
 
-<div id="canvasPalette" class="palette"></div>
 <button class="small-btn" onclick="toggleCanvasPalette()">Canvas Colour</button>
+<div id="canvasPalette" class="palette"></div>
 
-<div id="colors" class="palette"></div>
 <button id="colorBtn" class="big-btn" onclick="toggleColors()">SELECT COLOUR</button>
+<div id="colors" class="palette"></div>
 
 <div id="controls">
   <select onchange="addShape(this.value)">
@@ -135,7 +101,7 @@ button,select{
   </div>
 </div>
 
-<div class="control-grid">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;padding:18px">
   <button onclick="addText()">Add Text</button>
   <select onchange="changeFont(this.value)">
     <option value="">Select Font</option>
@@ -153,17 +119,22 @@ button,select{
 const canvas=document.getElementById("canvas");
 const ctx=canvas.getContext("2d");
 
-let canvasBg="#fff";
 let objects=[],selected=null;
 let mode=null,sx=0,sy=0,startAngle=0;
+let canvasBg="#fff";
+let history=[],redoStack=[];
 
-/* SVG CUSTOM SHAPE */
+/* SVG NORMALIZED SHAPES */
 const SVG_SHAPES={
-  design6:"M916 353c36,73 85,109 122,210 32,87 47,169 47,268 -145,20 -284,-94 -379,-146l-22 16c-17,13 -223,171 -258,228l131 118c52,42 91,87 149,116 126,-57 200,-155 376,-146 45,1066 -122,807 -165,1057 41,33 91,76 128,120 22,26 34,44 56,69 31,36 44,40 72,67 61,-28 217,-211 273,-279 -131,-251 -169,-187 -169,-577l-1 -457c185,-14 268,93 380,144 66,-29 224,-184 280,-232 -19,-26 -3,-7 -29,-33l-166 -145c-29,-25 -48,-37 -85,-66 -38,26 -50,32 -83,54 -31,21 -41,27 -78,45 -65,32 -138,49 -220,57 2,-234 73,-342 171,-488 -56,-91 -134,-167 -190,-238 -40,-51 -25,-47 -92,-83 -46,79 -130,159 -188,233l-34 46c-2,3 -4,7 -6,10 -18,27 0,-10 -20,32z"
+  design6:{
+    path:`M916 353c36,73 85,109 122,210 32,87 47,169 47,268 -145,20 -284,-94 -379,-146l-22 16c-17,13 -223,171 -258,228l131 118c52,42 91,87 149,116 126,-57 200,-155 376,-146 45,1066 -122,807 -165,1057 41,33 91,76 128,120 22,26 34,44 56,69 31,36 44,40 72,67 61,-28 217,-211 273,-279 -131,-251 -169,-187 -169,-577l-1 -457c185,-14 268,93 380,144 66,-29 224,-184 280,-232 -19,-26 -3,-7 -29,-33l-166 -145c-29,-25 -48,-37 -85,-66 -38,26 -50,32 -83,54 -31,21 -41,27 -78,45 -65,32 -138,49 -220,57 2,-234 73,-342 171,-488 -56,-91 -134,-167 -190,-238 -40,-51 -25,-47 -92,-83 -46,79 -130,159 -188,233l-34 46c-2,3 -4,7 -6,10 -18,27 0,-10 -20,32z`,
+    w:800,h:800
+  }
 };
 
-const COLORS=["#000","#fff","#5a3a22","#f7f4e9","#e74c3c","#3498db","#2ecc71","gold","silver","rosegold"];
-const CANVAS_BG=["#fff","#000","#ccc","#5a3a22"];
+/* COLORS */
+const ELEMENT_COLORS=["#000","#fff","#5a3a22","#e74c3c","#3498db","#2ecc71","gold","silver","rosegold"];
+const CANVAS_BACKGROUNDS=["#fff","#000","#ccc","#5a3a22"];
 
 /* CANVAS SIZE */
 function resizeCanvas(){
@@ -171,7 +142,7 @@ function resizeCanvas(){
   canvas.height=700;
   draw();
 }
-addEventListener("resize",resizeCanvas);
+window.onresize=resizeCanvas;
 
 /* METALLIC */
 function metallic(type,w){
@@ -194,8 +165,11 @@ function draw(){
     ctx.rotate(o.rotation);
     ctx.translate(-o.w/2,-o.h/2);
 
+    ctx.fillStyle=["gold","silver","rosegold"].includes(o.color)
+      ? metallic(o.color,o.w)
+      : o.color;
+
     if(o.type==="shape"){
-      ctx.fillStyle=["gold","silver","rosegold"].includes(o.color)?metallic(o.color,o.w):o.color;
       drawShape(o);
     }
 
@@ -204,7 +178,6 @@ function draw(){
       ctx.textBaseline="top";
       o.w=ctx.measureText(o.text).width;
       o.h=o.size;
-      ctx.fillStyle=["gold","silver","rosegold"].includes(o.color)?metallic(o.color,o.w):o.color;
       ctx.fillText(o.text,0,0);
     }
 
@@ -213,7 +186,6 @@ function draw(){
   });
 }
 
-/* SHAPES */
 function drawShape(o){
   ctx.beginPath();
   if(o.shape==="rect") ctx.rect(0,0,o.w,o.h);
@@ -222,15 +194,15 @@ function drawShape(o){
   else if(o.shape==="oval") ctx.ellipse(o.w/2,o.h/2,o.w/2,o.h/2,0,0,Math.PI*2);
   else if(o.shape==="pill") roundRect(0,0,o.w,o.h,o.h/2);
   else if(SVG_SHAPES[o.shape]){
-    const path=new Path2D(SVG_SHAPES[o.shape]);
-    const scale=Math.min(o.w,o.h)/800;
+    const m=SVG_SHAPES[o.shape];
     ctx.save();
-    ctx.scale(scale,scale);
-    ctx.fill(path);
+    ctx.scale(o.w/m.w,o.h/m.h);
+    ctx.fill(new Path2D(m.path));
     ctx.restore();
   }
   ctx.fill();
 }
+
 function roundRect(x,y,w,h,r){
   ctx.moveTo(x+r,y);
   ctx.arcTo(x+w,y,x+w,y+h,r);
@@ -245,46 +217,46 @@ function drawHandles(o){
   ctx.strokeRect(0,0,o.w,o.h);
 }
 
-/* ADD SHAPE */
+/* CONTROLS */
 function addShape(s){
   if(!s)return;
-  selected={type:"shape",shape:s,x:200,y:200,w:300,h:180,rotation:0,color:"#000",locked:false};
+  const w=canvas.width*0.4;
+  selected={type:"shape",shape:s,x:canvas.width/2-w/2,y:canvas.height/2-w/4,w:w,h:w*0.5,rotation:0,color:"#000",locked:false};
   objects.push(selected);
   draw();
 }
 
-/* TEXT */
 function addText(){
   const t=prompt("Text","Your Name");
   if(!t)return;
-  selected={type:"text",text:t,font:"Cinzel Decorative",size:80,x:200,y:300,rotation:0,color:"gold",locked:false};
+  selected={type:"text",text:t,font:"Cinzel Decorative",size:canvas.width*0.08,x:100,y:100,rotation:0,color:"gold",locked:false};
   objects.push(selected);
   draw();
 }
+
 function changeFont(f){if(selected&&selected.type==="text"){selected.font=f;draw();}}
 function toggleLock(){if(selected){selected.locked=!selected.locked;draw();}}
 
-/* COLORS */
 function toggleColors(){
   const c=document.getElementById("colors");
   c.innerHTML="";
-  COLORS.forEach(col=>{
+  ELEMENT_COLORS.forEach(col=>{
     const d=document.createElement("div");
     d.className="thumb";
-    d.style.background=["gold","silver","rosegold"].includes(col)
-      ? metallic(col,50)
-      : col;
+    if(col==="gold")d.style.background="linear-gradient(135deg,#7a5c00,#fff3b0,#7a5c00)";
+    else if(col==="silver")d.style.background="linear-gradient(135deg,#777,#fff,#777)";
+    else if(col==="rosegold")d.style.background="linear-gradient(135deg,#8b5a5a,#f3c1c1,#8b5a5a)";
+    else d.style.background=col;
     d.onclick=()=>{selected.color=col;c.style.display="none";draw();}
     c.appendChild(d);
   });
   c.style.display=c.style.display==="block"?"none":"block";
 }
 
-/* CANVAS BG */
 function toggleCanvasPalette(){
   const p=document.getElementById("canvasPalette");
   p.innerHTML="";
-  CANVAS_BG.forEach(c=>{
+  CANVAS_BACKGROUNDS.forEach(c=>{
     const d=document.createElement("div");
     d.className="thumb";
     d.style.background=c;
@@ -294,7 +266,6 @@ function toggleCanvasPalette(){
   p.style.display=p.style.display==="block"?"none":"block";
 }
 
-/* SAVE */
 function saveImage(){
   const a=document.createElement("a");
   a.download="design.jpg";
