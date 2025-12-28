@@ -290,6 +290,7 @@ function getPos(e){
   return{x:(t.clientX-r.left)*(canvas.width/r.width),y:(t.clientY-r.top)*(canvas.height/r.height)};
 }
 
+
 canvas.onmousedown=canvas.ontouchstart=e=>{
   saveState();e.preventDefault();
   const p=getPos(e);
@@ -306,7 +307,6 @@ canvas.onmousedown=canvas.ontouchstart=e=>{
     if(!o.locked&&Math.hypot(rx+18,ry+18)<14){objects.splice(i,1);draw();return;}
     if(!o.locked&&Math.hypot(rx-(o.w+18),ry+18)<14){selected=o;mode="rotate";startAngle=Math.atan2(p.y-cy,p.x-cx)-o.rotation;break;}
     if(!o.locked&&Math.hypot(rx-(o.w+18),ry-(o.h+18))<14){selected=o;mode="resize";sx=p.x;sy=p.y;break;}
-    if(rx>0&&rx<o.w&&ry>0&&ry<o.h)
 
 if(o.type==="text" && !o.locked){
   const now = Date.now();
@@ -320,6 +320,8 @@ if(o.type==="text" && !o.locked){
   }
   lastTapTime = now;
 }
+
+if(rx>0&&rx<o.w&&ry>0&&ry<o.h)
 
 {selected=o;if(!o.locked){mode="move";sx=p.x;sy=p.y;}break;}
   }
