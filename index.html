@@ -81,7 +81,36 @@ font-size:80px;
   width: calc(100% - 40px);
   margin: 20px auto;
   display: block;
-  accent-color: #gold; /* luxury gold tone */
+  accent-color: #fff3bo; /* luxury gold tone */
+}
+#canvasTools{
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 0 18px;
+}
+
+/* LONG SLIDER ON RIGHT */
+#sizeSlider{
+  flex: 1;              /* takes remaining space */
+  height: 14px;         /* makes slider thick */
+  display: none;
+  accent-color: #fff3b0; /* gold luxury tone */
+}
+
+/* Mobile thumb size */
+#sizeSlider::-webkit-slider-thumb{
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+#sizeSlider::-moz-range-thumb{
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  cursor: pointer;
 }
 </style>
 </head>
@@ -91,15 +120,17 @@ font-size:80px;
 <div id="brand">Imaginary Gifts</div>
 <canvas id="canvas"></canvas>
 
-<button class="small-btn" onclick="toggleCanvasPalette()">Canvas Colour</button>
-<div id="canvasPalette" class="palette"></div>  <input
-  id="sizeSlider"
-  type="range"
-  min="30"
-  max="800"
-  value="100"
-  style="display:none"
-/>
+<div id="canvasTools">
+  <button class="small-btn" onclick="toggleCanvasPalette()">Canvas Colour</button>
+
+  <input
+    id="sizeSlider"
+    type="range"
+    min="30"
+    max="800"
+    value="100"
+  />
+</div>
 <button id="colorBtn" class="big-btn" onclick="toggleColors()">SELECT COLOUR</button>
 <div id="colors" class="palette"></div>
 
