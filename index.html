@@ -32,7 +32,7 @@ body{margin:0;background:#000;font-family:Poppins}
 
 /* CONTROLS */
 button,select{
-  padding:28px;
+  padding:26px;
   font-size:20px;
   background:#000;
   color:#f7f4e9;
@@ -56,20 +56,20 @@ button,select{
 }
 
 .thumb{
-  width:90px;
-  height:90px;
+  width:120px;
+  height:120px;
   background:#fff;
-  border-radius:12px;
+  border-radius:14px;
   display:inline-flex;
   justify-content:center;
   align-items:center;
-  margin-right:10px;
+  margin-right:12px;
   cursor:pointer;
 }
 
 .thumb svg{
-  width:80%;
-  height:80%;
+  width:85%;
+  height:85%;
 }
 </style>
 </head>
@@ -87,16 +87,25 @@ button,select{
 <div id="logoPalette" class="palette"></div>
 <div id="borderPalette" class="palette"></div>
 
-<button onclick="saveImage()" style="width:100%">SAVE DESIGN</button>
+<div class="control-grid">
+  <button onclick="toggleColors()">Select Colour</button>
+  <button onclick="saveImage()">Save Design</button>
+</div>
+
+<div id="colors" class="palette"></div>
 
 <script>
-const canvas=document.getElementById("canvas");
-const ctx=canvas.getContext("2d");
+/* ================= CORE ================= */
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
 
-let objects=[],selected=null,mode=null,sx=0,sy=0,startAngle=0;
+let objects = [];
+let selected = null;
+let mode = null;
+let sx=0, sy=0, startAngle=0;
 
-/* ===== VECTOR DATA (200x200) ===== */
-const LOGOS={
+/* ================= VECTOR DATA (200x200) ================= */
+const LOGOS = {
   om:"M100 20 C60 20 40 60 60 90 C40 120 60 170 100 170 C140 170 160 120 140 90 C160 60 140 20 100 20 Z",
   lotus:"M100 20 L120 60 L160 80 L120 100 L100 160 L80 100 L40 80 L80 60 Z",
   heart:"M100 160 C20 80 60 20 100 60 C140 20 180 80 100 160 Z",
@@ -104,7 +113,7 @@ const LOGOS={
   diya:"M40 120 C100 180 160 120 100 60 Z"
 };
 
-const BORDERS={
+const BORDERS = {
   box:"M10 10 H190 V190 H10 Z",
   double:"M10 10 H190 V190 H10 Z M30 30 H170 V170 H30 Z",
   rounded:"M20 10 H180 Q190 10 190 20 V180 Q190 190 180 190 H20 Q10 190 10 180 V20 Q10 10 20 10 Z",
@@ -112,15 +121,26 @@ const BORDERS={
   ornate:"M40 10 H160 V40 H190 V160 H160 V190 H40 V160 H10 V40 H40 Z"
 };
 
-/* ===== CANVAS ===== */
+const COLORS = ["#000","#fff","#e74c3c","#3498db","#2ecc71","gold","silver","rosegold"];
+
+/* ================= CANVAS ================= */
 function resizeCanvas(){
-  canvas.width=Math.min(innerWidth-20,900);
-  canvas.height=700;
+  canvas.width = Math.min(innerWidth-20,900);
+  canvas.height = 700;
   draw();
 }
-window.onresize=resizeCanvas;
+window.onresize = resizeCanvas;
 
-/* ===== DRAW ===== */
+/* ================= METALLIC ================= */
+function metallic(type,w){
+  const g = ctx.createLinearGradient(0,0,w,0);
+  if(type==="gold"){g.addColorStop(0,"#7a5c00");g.addColorStop(.5,"#fff3b0");g.addColorStop(1,"#7a5c00");}
+  if(type==="silver"){g.addColorStop(0,"#777");g.addColorStop(.5,"#fff");g.addColorStop(1,"#777");}
+  if(type==="rosegold"){g.addColorStop(0,"#8b5a5a");g.addColorStop(.5,"#f3c1c1");g.addColorStop(1,"#8b5a5a");}
+  return g;
+}
+
+/* ================= DRAW ================= */
 function draw(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
   ctx.fillStyle="#fff";
@@ -132,7 +152,10 @@ function draw(){
     ctx.rotate(o.rotation);
     ctx.translate(-o.w/2,-o.h/2);
 
-    ctx.fillStyle=o.color;
+    ctx.fillStyle = ["gold","silver","rosegold"].includes(o.color)
+      ? metallic(o.color,o.w)
+      : o.color;
+
     ctx.scale(o.w/200,o.h/200);
     ctx.fill(new Path2D(o.path));
 
@@ -140,9 +163,9 @@ function draw(){
   });
 }
 
-/* ===== ADD VECTOR ===== */
+/* ================= ADD VECTOR ================= */
 function addVector(path){
-  const size=canvas.width*0.4;
+  const size = canvas.width*0.4;
   objects.push({
     path,
     x:(canvas.width-size)/2,
@@ -155,7 +178,7 @@ function addVector(path){
   draw();
 }
 
-/* ===== PALETTES ===== */
+/* ================= PALETTES ================= */
 function buildPalette(el,data){
   el.innerHTML="";
   Object.values(data).forEach(p=>{
@@ -170,18 +193,38 @@ function buildPalette(el,data){
 function toggleLogoPalette(){
   const p=document.getElementById("logoPalette");
   buildPalette(p,LOGOS);
-  p.style.display=p.style.display==="block"?"none":"block";
+  p.style.display = p.style.display==="block"?"none":"block";
   document.getElementById("borderPalette").style.display="none";
 }
 
 function toggleBorderPalette(){
   const p=document.getElementById("borderPalette");
   buildPalette(p,BORDERS);
-  p.style.display=p.style.display==="block"?"none":"block";
+  p.style.display = p.style.display==="block"?"none":"block";
   document.getElementById("logoPalette").style.display="none";
 }
 
-/* ===== SAVE ===== */
+/* ================= COLORS ================= */
+function toggleColors(){
+  const p=document.getElementById("colors");
+  p.innerHTML="";
+  COLORS.forEach(c=>{
+    const d=document.createElement("div");
+    d.className="thumb";
+    d.style.background = c==="gold"
+      ?"linear-gradient(135deg,#7a5c00,#fff3b0,#7a5c00)"
+      :c==="silver"
+      ?"linear-gradient(135deg,#777,#fff,#777)"
+      :c==="rosegold"
+      ?"linear-gradient(135deg,#8b5a5a,#f3c1c1,#8b5a5a)"
+      :c;
+    d.onclick=()=>{if(selected){selected.color=c;draw();}p.style.display="none";}
+    p.appendChild(d);
+  });
+  p.style.display = p.style.display==="block"?"none":"block";
+}
+
+/* ================= SAVE ================= */
 function saveImage(){
   const a=document.createElement("a");
   a.download="design.jpg";
