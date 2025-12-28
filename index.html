@@ -153,6 +153,7 @@ const canvas=document.getElementById("canvas");
 const ctx=canvas.getContext("2d");
 
 let canvasBg="#fff";
+let canvasBgImage = null;
 let objects=[],selected=null;
 let mode=null,sx=0,sy=0,startAngle=0,lastTapTime=0;
 
@@ -187,6 +188,11 @@ const VECTOR_SHAPES = {
 
 const ELEMENT_COLORS=["#000","#fff","#5a3a22","#e74c3c","#3498db","#2ecc71","gold","silver","rosegold"];
 const CANVAS_BACKGROUNDS=["#fff","#000","#ccc","#5a3a22"];
+const CANVAS_BG_IMAGES = [
+  "https://drive.google.com/file/d/1nTx2lKefZrjyS5uugCUwlUsOT7wB512v/view?usp=drivesdk",
+  "https://drive.google.com/file/d/1EEDqeyk2EMIiWbWApPTigLlpm0X_a36-/view?usp=drivesdk",
+  "https://drive.google.com/file/d/1h_9QfyscnYypEca6GhWkXVklWEvuiBNF/view?usp=drivesdk"
+];
 
 function resizeCanvas(){
   canvas.width=Math.min(innerWidth-20,900);
@@ -203,11 +209,28 @@ function metallic(type,w){
   return g;
 }
 
+function setCanvasBgImage(src){
+  const img = new Image();
+  img.onload = () => {
+    canvasBgImage = img;
+    draw();
+  };
+  img.src = src;
+}
+
 function draw(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.fillStyle=canvasBg;
-  ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle = canvasBg;
+ctx.fillRect(0,0,canvas.width,canvas.height);
 
+if(canvasBgImage){
+  ctx.drawImage(
+    canvasBgImage,
+    0, 0,
+    canvas.width,
+    canvas.height
+  );
+}
   objects.forEach(o=>{
     ctx.save();
     ctx.translate(o.x+o.w/2,o.y+o.h/2);
@@ -405,13 +428,35 @@ function toggleColors(){
 function toggleCanvasPalette(){
   const p=document.getElementById("canvasPalette");
   p.innerHTML="";
+
+  /* SOLID COLORS */
   CANVAS_BACKGROUNDS.forEach(c=>{
     const d=document.createElement("div");
     d.className="thumb";
     d.style.background=c;
-    d.onclick=()=>{canvasBg=c;p.style.display="none";draw();}
+    d.onclick=()=>{
+      canvasBg=c;
+      canvasBgImage=null;   // remove image if any
+      p.style.display="none";
+      draw();
+    };
     p.appendChild(d);
   });
+
+  /* IMAGE BACKGROUNDS */
+  CANVAS_BG_IMAGES.forEach(src=>{
+    const d=document.createElement("div");
+    d.className="thumb";
+    d.style.backgroundImage=`url(${src})`;
+    d.style.backgroundSize="cover";
+    d.style.backgroundPosition="center";
+    d.onclick=()=>{
+      setCanvasBgImage(src);
+      p.style.display="none";
+    };
+    p.appendChild(d);
+  });
+
   p.style.display=p.style.display==="block"?"none":"block";
 }
 
