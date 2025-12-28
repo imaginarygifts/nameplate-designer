@@ -1,365 +1,390 @@
-<!DOCTYPE html>  <html>  
-<head>  
-<meta charset="UTF-8">  
-<title>Imaginary Gifts – Designer</title>  <link href="https://fonts.googleapis.com/css2?family=Poppins&family=Great+Vibes&family=Dancing+Script&family=Playfair+Display&family=Montserrat&family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet">  <style>  
-body{margin:0;background:#000;font-family:Poppins}  
-  
-/* LOGO */  
-#brand{  
-  background:#000;  
-  text-align:center;  
-  padding:30px;  
-  font-size:60px;  
-  font-family:"Cinzel Decorative",serif;  
-  background-image:linear-gradient(135deg,#7a5c00,#fff3b0,#7a5c00);  
-  -webkit-background-clip:text;  
-  -webkit-text-fill-color:transparent;  
-}  
-  
-/* CANVAS */  
-#canvas{  
-  background:#fff;  
-  border:2px solid #000;  
-  border-radius:18px;  
-  display:block;  
-  margin:10px auto;  
-  touch-action:none;  
-}  
-  
-/* BUTTONS */  
-.big-btn{  
-  width:100%;  
-  margin:10px auto;  
-  padding:36px;  
-  font-size:26px;  
-  background:#000;  
-  color:#f7f4e9;  
-  border:2px solid #f7f4e9;  
-  border-radius:14px;  
-  display:none;  
-}  
-.small-btn{  
-  display:block;  
-  margin:10px auto;  
-  padding:12px 24px;  
-  font-size:14px;  
-  background:#000;  
-  color:#fff;  
-  border:1px solid #fff;  
-  border-radius:10px;  
-}  
-  
-/* MINI TOOLS (RIGHT SIDE) */  
-.right-tools{  
-  display:flex;  
-  gap:10px;  
-}  
-.mini-btn{  
-  padding:14px 16px;  
-  font-size:50px;  
-  background:#000;  
-  color:#fff;  
-  border:2px solid #fff;  
-  border-radius:12px;  
-}  
-  
-/* PALETTE */  
-.palette{  
-  display:none;  
-  overflow-x:auto;  
-  white-space:nowrap;  
-  padding:10px;  
-  text-align:center;  
-}  
-.thumb{  
-  width:50px;  
-  height:50px;  
-  display:inline-block;  
-  border-radius:8px;  
-  margin-right:10px;  
-  border:2px solid #fff;  
-}  
-  
-/* CONTROLS */  
-#controls{  
-  background:#000;  
-  padding:18px;  
-  display:grid;  
-  grid-template-columns:1fr auto;  
-  gap:18px;  
-  align-items:center;  
-}  
-  
-.control-grid{  
-  display:grid;  
-  grid-template-columns:1fr 1fr;  
-  gap:18px;  
-  margin-top:18px;  
-}  
-  
-button,select{  
-  padding:30px;  
-  font-size:22px;  
-  background:#000;  
-  color:#f7f4e9;  
-  border:2px solid #f7f4e9;  
-  border-radius:14px;  
-}  
-</style>  </head>  <body>  <div id="brand">Imaginary Gifts</div>  <canvas id="canvas"></canvas>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Imaginary Gifts – Designer</title>
 
-<!-- CANVAS COLOUR -->  <div id="canvasPalette" class="palette"></div>  
-<button class="small-btn" onclick="toggleCanvasPalette()">Canvas Colour</button>  <!-- ELEMENT COLOUR -->  <div id="colors" class="palette"></div>  
-<button id="colorBtn" class="big-btn" onclick="toggleColors()">SELECT COLOUR</button>  <!-- TOP CONTROLS ROW -->  <div id="controls">    <!-- LEFT: SHAPE SELECT -->    <select onchange="addShape(this.value)">  
-    <option value="">Select Shape</option>  
-    <option value="rect">Rectangle</option>  
-    <option value="rounded">Rounded</option>  
-    <option value="circle">Circle</option>  
-    <option value="oval">Oval</option>  
-    <option value="pill">Pill</option>  
-  </select>    <!-- RIGHT: UNDO | LOCK | REDO -->    <div class="right-tools">  
-    <button class="mini-btn" onclick="undo()">↶</button>  
-    <button class="mini-btn" onclick="toggleLock()">🔒</button>  
-    <button class="mini-btn" onclick="redo()">↷</button>  
-  </div>  </div>  <!-- SECOND ROW CONTROLS -->  <div class="control-grid">  
-  <button onclick="addText()">Add Text</button>    <select onchange="changeFont(this.value)">  
-    <option value="">Select Font</option>  
-    <option>Cinzel Decorative</option>  
-    <option>Great Vibes</option>  
-    <option>Dancing Script</option>  
-    <option>Playfair Display</option>  
-    <option>Montserrat</option>  
-  </select>  
-</div>  <button class="big-btn" style="display:block" onclick="saveImage()">SAVE DESIGN</button>
+<link href="https://fonts.googleapis.com/css2?family=Poppins&family=Great+Vibes&family=Dancing+Script&family=Playfair+Display&family=Montserrat&family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet">
 
-<!-- ================= SCRIPT (UNCHANGED LOGIC) ================= -->  <script>  
-/* ---------- CORE ---------- */  
-const canvas=document.getElementById("canvas");  
-const ctx=canvas.getContext("2d");  
-  
-let canvasBg="#fff";  
-let objects=[],selected=null;  
-let mode=null,sx=0,sy=0,startAngle=0,lastTapTime=0;  
-  
-/* ---------- HISTORY ---------- */  
-let history=[],redoStack=[];  
-function saveState(){  
-  history.push(JSON.stringify({objects,canvasBg}));  
-  if(history.length>50) history.shift();  
-  redoStack=[];  
-}  
-function undo(){  
-  if(!history.length) return;  
-  redoStack.push(JSON.stringify({objects,canvasBg}));  
-  const s=JSON.parse(history.pop());  
-  objects=s.objects;canvasBg=s.canvasBg;selected=null;draw();  
-}  
-function redo(){  
-  if(!redoStack.length) return;  
-  history.push(JSON.stringify({objects,canvasBg}));  
-  const s=JSON.parse(redoStack.pop());  
-  objects=s.objects;canvasBg=s.canvasBg;selected=null;draw();  
-}  
-  
-/* ---------- CONSTANTS ---------- */  
-const ELEMENT_COLORS=["#000","#fff","#5a3a22","#f7f4e9","#e74c3c","#3498db","#2ecc71","gold","silver","rosegold"];  
-const CANVAS_BACKGROUNDS=["#ffffff","#000000","#cccccc","#5a3a22"];  
-  
-/* ---------- CANVAS SIZE ---------- */  
-function resizeCanvas(){  
-  canvas.width=Math.min(innerWidth-20,900);  
-  canvas.height=700;  
-  draw();  
-}  
-addEventListener("resize",resizeCanvas);  
-  
-/* ---------- METALLIC ---------- */  
-function metallic(type,w){  
-  const g=ctx.createLinearGradient(0,0,w,0);  
-  if(type==="gold"){g.addColorStop(0,"#7a5c00");g.addColorStop(.5,"#fff3b0");g.addColorStop(1,"#7a5c00");}  
-  if(type==="silver"){g.addColorStop(0,"#777");g.addColorStop(.5,"#fff");g.addColorStop(1,"#777");}  
-  if(type==="rosegold"){g.addColorStop(0,"#8b5a5a");g.addColorStop(.5,"#f3c1c1");g.addColorStop(1,"#8b5a5a");}  
-  return g;  
-}  
-  
-/* ---------- DRAW ---------- */  
-function draw(){  
-  ctx.clearRect(0,0,canvas.width,canvas.height);  
-  ctx.fillStyle=canvasBg;  
-  ctx.fillRect(0,0,canvas.width,canvas.height);  
-  
-  objects.forEach(o=>{  
-    ctx.save();  
-    ctx.translate(o.x+o.w/2,o.y+o.h/2);  
-    ctx.rotate(o.rotation);  
-    ctx.translate(-o.w/2,-o.h/2);  
-  
-    if(o.type==="shape"){  
-      ctx.fillStyle=["gold","silver","rosegold"].includes(o.color)?metallic(o.color,o.w):o.color;  
-      drawShape(o);  
-    }  
-    if(o.type==="text"){  
-      ctx.font=`${o.size}px ${o.font}`;  
-      ctx.textBaseline="top";  
-      o.w=ctx.measureText(o.text).width;  
-      o.h=o.size;  
-      ctx.fillStyle=["gold","silver","rosegold"].includes(o.color)?metallic(o.color,o.w):o.color;  
-      ctx.fillText(o.text,0,0);  
-    }  
-    if(o===selected) drawHandles(o);  
-    ctx.restore();  
-  });  
-}  
-  
-function drawShape(o){  
-  ctx.beginPath();  
-  if(o.shape==="rect") ctx.rect(0,0,o.w,o.h);  
-  if(o.shape==="rounded") roundRect(0,0,o.w,o.h,20);  
-  if(o.shape==="circle") ctx.arc(o.w/2,o.h/2,o.w/2,0,Math.PI*2);  
-  if(o.shape==="oval") ctx.ellipse(o.w/2,o.h/2,o.w/2,o.h/2,0,0,Math.PI*2);  
-  if(o.shape==="pill") roundRect(0,0,o.w,o.h,o.h/2);  
-  ctx.fill();  
-}  
-function roundRect(x,y,w,h,r){  
-  ctx.moveTo(x+r,y);  
-  ctx.arcTo(x+w,y,x+w,y+h,r);  
-  ctx.arcTo(x+w,y+h,x,y+h,r);  
-  ctx.arcTo(x,y+h,x,y,r);  
-  ctx.arcTo(x,y,x+w,y,r);  
-}  
-  
-/* ---------- HANDLES ---------- */  
-function drawIcon(x,y,t){  
-  ctx.beginPath();  
-  ctx.arc(x,y,14,0,Math.PI*2);  
-  ctx.fillStyle="#fff";ctx.fill();ctx.stroke();  
-  ctx.fillStyle="#000";ctx.font="16px Poppins";  
-  ctx.fillText(t,x-6,y+6);  
-}  
-function drawHandles(o){  
-  ctx.strokeStyle=o.locked?"#999":"#1e90ff";  
-  ctx.strokeRect(0,0,o.w,o.h);  
-  if(o.locked){drawIcon(o.w/2,-22,"🔒");return;}  
-  drawIcon(-18,-18,"×");  
-  drawIcon(o.w+18,-18,"↻");  
-  drawIcon(o.w+18,o.h+18,"↔");  
-}  
-  
-/* ---------- INTERACTION ---------- */  
-function getPos(e){  
-  const r=canvas.getBoundingClientRect();  
-  const t=e.touches?e.touches[0]:e;  
-  return{x:(t.clientX-r.left)*(canvas.width/r.width),y:(t.clientY-r.top)*(canvas.height/r.height)};  
-}  
-  
-canvas.onmousedown=canvas.ontouchstart=e=>{  
-  saveState();  
-  e.preventDefault();  
-  const p=getPos(e);  
-  selected=null;mode=null;  
-  
-  for(let i=objects.length-1;i>=0;i--){  
-    const o=objects[i];  
-    const cx=o.x+o.w/2,cy=o.y+o.h/2;  
-    const dx=p.x-cx,dy=p.y-cy;  
-    const cos=Math.cos(-o.rotation),sin=Math.sin(-o.rotation);  
-    const rx=cos*dx-sin*dy+o.w/2;  
-    const ry=sin*dx+cos*dy+o.h/2;  
-  
-    if(rx>0&&rx<o.w&&ry>0&&ry<o.h){  
-      if(o.type==="text"&&!o.locked){  
-        const now=Date.now();  
-        if(now-lastTapTime<350){  
-          const nt=prompt("Edit Text",o.text);  
-          if(nt!==null){o.text=nt;draw();}  
-          return;  
-        }  
-        lastTapTime=now;  
-      }  
-    }  
-    if(!o.locked&&Math.hypot(rx+18,ry+18)<14){objects.splice(i,1);draw();return;}  
-    if(!o.locked&&Math.hypot(rx-(o.w+18),ry+18)<14){selected=o;mode="rotate";startAngle=Math.atan2(p.y-cy,p.x-cx)-o.rotation;break;}  
-    if(!o.locked&&Math.hypot(rx-(o.w+18),ry-(o.h+18))<14){selected=o;mode="resize";sx=p.x;sy=p.y;break;}  
-    if(rx>0&&rx<o.w&&ry>0&&ry<o.h){selected=o;if(!o.locked){mode="move";sx=p.x;sy=p.y;}break;}  
-  }  
-  colorBtn.style.display=selected?"block":"none";  
-  draw();  
-};  
-  
-canvas.onmousemove=canvas.ontouchmove=e=>{  
-  if(!selected||!mode||selected.locked)return;  
-  e.preventDefault();  
-  const p=getPos(e);  
-  if(mode==="move"){selected.x+=p.x-sx;selected.y+=p.y-sy;}  
-  if(mode==="resize"){  
-    selected.w+=p.x-sx;  
-    selected.h+=p.y-sy;  
-    if(selected.type==="text") selected.size+=(p.y-sy)*0.5;  
-  }  
-  if(mode==="rotate"){  
-    const cx=selected.x+selected.w/2,cy=selected.y+selected.h/2;  
-    selected.rotation=Math.atan2(p.y-cy,p.x-cx)-startAngle;  
-  }  
-  sx=p.x;sy=p.y;draw();  
-};  
-  
-canvas.onmouseup=canvas.ontouchend=()=>mode=null;  
-  
-/* ---------- CONTROLS ---------- */  
-function addShape(s){  
-  saveState();  
-  if(!s)return;  
-  objects=objects.filter(o=>o.type!=="shape");  
-  const w=canvas.width*0.6;  
-  selected={type:"shape",shape:s,x:(canvas.width-w)/2,y:(canvas.height-(w*0.6))/2,w:w,h:w*0.6,rotation:0,color:"#000",locked:false};  
-  objects.push(selected);colorBtn.style.display="block";draw();  
-}  
-function addText(){  
-  saveState();  
-  const t=prompt("Text","Your Name");  
-  if(!t)return;  
-  selected={type:"text",text:t,font:"Cinzel Decorative",size:canvas.width*0.08,x:canvas.width*0.2,y:canvas.height*0.45,rotation:0,color:"gold",locked:false};  
-  objects.push(selected);colorBtn.style.display="block";draw();  
-}  
-function changeFont(f){saveState();if(selected&&selected.type==="text"){selected.font=f;draw();}}  
-function toggleLock(){saveState();if(selected){selected.locked=!selected.locked;draw();}}  
-  
-function toggleColors(){  
-  const c=document.getElementById("colors");  
-  c.innerHTML="";  
-  ELEMENT_COLORS.forEach(col=>{  
-    const d=document.createElement("div");  
-    d.className="thumb";  
-    if(col==="gold")d.style.background="linear-gradient(135deg,#7a5c00,#fff3b0,#7a5c00)";  
-    else if(col==="silver")d.style.background="linear-gradient(135deg,#777,#fff,#777)";  
-    else if(col==="rosegold")d.style.background="linear-gradient(135deg,#8b5a5a,#f3c1c1,#8b5a5a)";  
-    else d.style.background=col;  
-    d.onclick=()=>{saveState();selected.color=col;c.style.display="none";draw();}  
-    c.appendChild(d);  
-  });  
-  c.style.display=c.style.display==="block"?"none":"block";  
-}  
-  
-function toggleCanvasPalette(){  
-  const p=document.getElementById("canvasPalette");  
-  p.innerHTML="";  
-  CANVAS_BACKGROUNDS.forEach(c=>{  
-    const d=document.createElement("div");  
-    d.className="thumb";  
-    d.style.background=c;  
-    d.onclick=()=>{saveState();canvasBg=c;p.style.display="none";draw();}  
-    p.appendChild(d);  
-  });  
-  p.style.display=p.style.display==="block"?"none":"block";  
-}  
-  
-function saveImage(){  
-  const a=document.createElement("a");  
-  a.download="design.jpg";  
-  a.href=canvas.toDataURL("image/jpeg",1);  
-  a.click();  
-}  
-  
-resizeCanvas();  
-draw();  
-</script>  </body>  
+<style>
+body{margin:0;background:#000;font-family:Poppins}
+
+#brand{
+  background:#000;
+  text-align:center;
+  padding:30px;
+  font-size:60px;
+  font-family:"Cinzel Decorative",serif;
+  background-image:linear-gradient(135deg,#7a5c00,#fff3b0,#7a5c00);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+
+#canvas{
+  background:#fff;
+  border-radius:18px;
+  display:block;
+  margin:10px auto;
+  touch-action:none;
+}
+
+.big-btn{
+  width:100%;
+  margin:10px auto;
+  padding:36px;
+  font-size:26px;
+  background:#000;
+  color:#f7f4e9;
+  border:2px solid #f7f4e9;
+  border-radius:14px;
+  display:none;
+}
+
+.small-btn{
+  display:block;
+  margin:10px auto;
+  padding:12px 24px;
+  font-size:14px;
+  background:#000;
+  color:#fff;
+  border:1px solid #fff;
+  border-radius:10px;
+}
+
+.right-tools{display:flex;gap:10px}
+.mini-btn{
+  padding:14px 16px;
+  font-size:50px;
+  background:#000;
+  color:#fff;
+  border:2px solid #fff;
+  border-radius:12px;
+}
+
+.palette{
+  display:none;
+  overflow-x:auto;
+  white-space:nowrap;
+  padding:10px;
+  text-align:center;
+}
+.thumb{
+  width:50px;height:50px;
+  display:inline-block;
+  border-radius:8px;
+  margin-right:10px;
+  border:2px solid #fff;
+}
+
+#controls{
+  background:#000;
+  padding:18px;
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:18px;
+}
+
+.control-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:18px;
+  margin-top:18px;
+}
+
+button,select{
+  padding:30px;
+  font-size:22px;
+  background:#000;
+  color:#f7f4e9;
+  border:2px solid #f7f4e9;
+  border-radius:14px;
+}
+</style>
+</head>
+
+<body>
+
+<div id="brand">Imaginary Gifts</div>
+<canvas id="canvas"></canvas>
+
+<div id="canvasPalette" class="palette"></div>
+<button class="small-btn" onclick="toggleCanvasPalette()">Canvas Colour</button>
+
+<div id="colors" class="palette"></div>
+<button id="colorBtn" class="big-btn" onclick="toggleColors()">SELECT COLOUR</button>
+
+<div id="controls">
+<select onchange="addShape(this.value)">
+  <option value="">Select Shape</option>
+  <option value="rect">Rectangle</option>
+  <option value="rounded">Rounded</option>
+  <option value="circle">Circle</option>
+  <option value="oval">Oval</option>
+  <option value="pill">Pill</option>
+  <option value="design6">Design 6</option>
+</select>
+
+<div class="right-tools">
+  <button class="mini-btn" onclick="undo()">↶</button>
+  <button class="mini-btn" onclick="toggleLock()">🔒</button>
+  <button class="mini-btn" onclick="redo()">↷</button>
+</div>
+</div>
+
+<div class="control-grid">
+<button onclick="addText()">Add Text</button>
+<select onchange="changeFont(this.value)">
+  <option value="">Select Font</option>
+  <option>Cinzel Decorative</option>
+  <option>Great Vibes</option>
+  <option>Dancing Script</option>
+  <option>Playfair Display</option>
+  <option>Montserrat</option>
+</select>
+</div>
+
+<button class="big-btn" style="display:block" onclick="saveImage()">SAVE DESIGN</button>
+
+<script>
+/* ================= CORE ================= */
+const canvas=document.getElementById("canvas");
+const ctx=canvas.getContext("2d");
+
+let canvasBg="#fff";
+let objects=[],selected=null;
+let mode=null,sx=0,sy=0,startAngle=0,lastTapTime=0;
+
+/* ================= HISTORY ================= */
+let history=[],redoStack=[];
+function saveState(){
+  history.push(JSON.stringify({objects,canvasBg}));
+  redoStack=[];
+}
+function undo(){
+  if(!history.length)return;
+  redoStack.push(JSON.stringify({objects,canvasBg}));
+  const s=JSON.parse(history.pop());
+  objects=s.objects;canvasBg=s.canvasBg;selected=null;draw();
+}
+function redo(){
+  if(!redoStack.length)return;
+  history.push(JSON.stringify({objects,canvasBg}));
+  const s=JSON.parse(redoStack.pop());
+  objects=s.objects;canvasBg=s.canvasBg;selected=null;draw();
+}
+
+/* ================= CONSTANTS ================= */
+const ELEMENT_COLORS=["#000","#fff","#5a3a22","#f7f4e9","#e74c3c","#3498db","#2ecc71","gold","silver","rosegold"];
+const CANVAS_BACKGROUNDS=["#ffffff","#000000","#cccccc","#5a3a22"];
+
+/* ================= SVG PATH SHAPES ================= */
+/* viewBox assumed: 0 0 2362 2362 (Corel 200mm export) */
+const SVG_VIEWBOX = 2362;
+
+const SVG_SHAPES = {
+  design6: `M916 353c36,73 85,109 122,210 32,87 47,169 47,268 -145,20 -284,-94 -379,-146l-22 16c-17,13 -223,171 -258,228l131 118c52,42 91,87 149,116 126,-57 200,-155 376,-146 45,1066 -122,807 -165,1057 41,33 91,76 128,120 22,26 34,44 56,69 31,36 44,40 72,67 61,-28 217,-211 273,-279 -131,-251 -169,-187 -169,-577l-1 -457c185,-14 268,93 380,144 66,-29 224,-184 280,-232 -19,-26 -3,-7 -29,-33l-166 -145c-29,-25 -48,-37 -85,-66 -38,26 -50,32 -83,54 -31,21 -41,27 -78,45 -65,32 -138,49 -220,57 2,-234 73,-342 171,-488 -56,-91 -134,-167 -190,-238 -40,-51 -25,-47 -92,-83 -46,79 -130,159 -188,233l-34 46c-2,3 -4,7 -6,10 -18,27 0,-10 -20,32z`
+};
+
+/* ================= CANVAS SIZE ================= */
+function resizeCanvas(){
+  canvas.width=Math.min(innerWidth-20,900);
+  canvas.height=700;
+  draw();
+}
+addEventListener("resize",resizeCanvas);
+
+/* ================= METALLIC ================= */
+function metallic(type,w){
+  const g=ctx.createLinearGradient(0,0,w,0);
+  if(type==="gold"){g.addColorStop(0,"#7a5c00");g.addColorStop(.5,"#fff3b0");g.addColorStop(1,"#7a5c00");}
+  if(type==="silver"){g.addColorStop(0,"#777");g.addColorStop(.5,"#fff");g.addColorStop(1,"#777");}
+  if(type==="rosegold"){g.addColorStop(0,"#8b5a5a");g.addColorStop(.5,"#f3c1c1");g.addColorStop(1,"#8b5a5a");}
+  return g;
+}
+
+/* ================= DRAW ================= */
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle=canvasBg;
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  objects.forEach(o=>{
+    ctx.save();
+    ctx.translate(o.x+o.w/2,o.y+o.h/2);
+    ctx.rotate(o.rotation);
+    ctx.translate(-o.w/2,-o.h/2);
+
+    if(o.type==="shape"){
+      ctx.fillStyle=["gold","silver","rosegold"].includes(o.color)
+        ? metallic(o.color,o.w)
+        : o.color;
+
+      if(SVG_SHAPES[o.shape]){
+        const path=new Path2D(SVG_SHAPES[o.shape]);
+        const scale=o.w/SVG_VIEWBOX;
+        ctx.save();
+        ctx.scale(scale,scale);
+        ctx.fill(path);
+        ctx.restore();
+      } else drawBasicShape(o);
+    }
+
+    if(o.type==="text"){
+      ctx.font=`${o.size}px ${o.font}`;
+      ctx.textBaseline="top";
+      o.w=ctx.measureText(o.text).width;
+      o.h=o.size;
+      ctx.fillStyle=["gold","silver","rosegold"].includes(o.color)
+        ? metallic(o.color,o.w)
+        : o.color;
+      ctx.fillText(o.text,0,0);
+    }
+
+    if(o===selected) drawHandles(o);
+    ctx.restore();
+  });
+}
+
+function drawBasicShape(o){
+  ctx.beginPath();
+  if(o.shape==="rect") ctx.rect(0,0,o.w,o.h);
+  if(o.shape==="rounded") roundRect(0,0,o.w,o.h,20);
+  if(o.shape==="circle") ctx.arc(o.w/2,o.h/2,o.w/2,0,Math.PI*2);
+  if(o.shape==="oval") ctx.ellipse(o.w/2,o.h/2,o.w/2,o.h/2,0,0,Math.PI*2);
+  if(o.shape==="pill") roundRect(0,0,o.w,o.h,o.h/2);
+  ctx.fill();
+}
+function roundRect(x,y,w,h,r){
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+}
+
+/* ================= HANDLES ================= */
+function drawIcon(x,y,t){
+  ctx.beginPath();
+  ctx.arc(x,y,14,0,Math.PI*2);
+  ctx.fillStyle="#fff";ctx.fill();ctx.stroke();
+  ctx.fillStyle="#000";ctx.font="16px Poppins";
+  ctx.fillText(t,x-6,y+6);
+}
+function drawHandles(o){
+  ctx.strokeStyle=o.locked?"#999":"#1e90ff";
+  ctx.strokeRect(0,0,o.w,o.h);
+  if(o.locked){drawIcon(o.w/2,-22,"🔒");return;}
+  drawIcon(-18,-18,"×");
+  drawIcon(o.w+18,-18,"↻");
+  drawIcon(o.w+18,o.h+18,"↔");
+}
+
+/* ================= INTERACTION ================= */
+function getPos(e){
+  const r=canvas.getBoundingClientRect();
+  const t=e.touches?e.touches[0]:e;
+  return{x:(t.clientX-r.left)*(canvas.width/r.width),y:(t.clientY-r.top)*(canvas.height/r.height)};
+}
+
+canvas.onmousedown=canvas.ontouchstart=e=>{
+  saveState();e.preventDefault();
+  const p=getPos(e);
+  selected=null;mode=null;
+
+  for(let i=objects.length-1;i>=0;i--){
+    const o=objects[i];
+    const cx=o.x+o.w/2,cy=o.y+o.h/2;
+    const dx=p.x-cx,dy=p.y-cy;
+    const cos=Math.cos(-o.rotation),sin=Math.sin(-o.rotation);
+    const rx=cos*dx-sin*dy+o.w/2;
+    const ry=sin*dx+cos*dy+o.h/2;
+
+    if(!o.locked&&Math.hypot(rx+18,ry+18)<14){objects.splice(i,1);draw();return;}
+    if(!o.locked&&Math.hypot(rx-(o.w+18),ry+18)<14){selected=o;mode="rotate";startAngle=Math.atan2(p.y-cy,p.x-cx)-o.rotation;break;}
+    if(!o.locked&&Math.hypot(rx-(o.w+18),ry-(o.h+18))<14){selected=o;mode="resize";sx=p.x;sy=p.y;break;}
+    if(rx>0&&rx<o.w&&ry>0&&ry<o.h){selected=o;if(!o.locked){mode="move";sx=p.x;sy=p.y;}break;}
+  }
+  colorBtn.style.display=selected?"block":"none";
+  draw();
+};
+
+canvas.onmousemove=canvas.ontouchmove=e=>{
+  if(!selected||!mode||selected.locked)return;
+  e.preventDefault();
+  const p=getPos(e);
+  if(mode==="move"){selected.x+=p.x-sx;selected.y+=p.y-sy;}
+  if(mode==="resize"){selected.w+=p.x-sx;selected.h+=p.y-sy;}
+  if(mode==="rotate"){
+    const cx=selected.x+selected.w/2,cy=selected.y+selected.h/2;
+    selected.rotation=Math.atan2(p.y-cy,p.x-cx)-startAngle;
+  }
+  sx=p.x;sy=p.y;draw();
+};
+canvas.onmouseup=canvas.ontouchend=()=>mode=null;
+
+/* ================= CONTROLS ================= */
+function addShape(s){
+  saveState();
+  if(!s)return;
+  const w=canvas.width*0.6;
+  selected={type:"shape",shape:s,x:(canvas.width-w)/2,y:(canvas.height-w*0.6)/2,w:w,h:w*0.6,rotation:0,color:"#000",locked:false};
+  objects.push(selected);
+  colorBtn.style.display="block";
+  draw();
+}
+function addText(){
+  saveState();
+  const t=prompt("Text","Your Name");
+  if(!t)return;
+  selected={type:"text",text:t,font:"Cinzel Decorative",size:canvas.width*0.08,x:canvas.width*0.2,y:canvas.height*0.45,rotation:0,color:"gold",locked:false};
+  objects.push(selected);
+  colorBtn.style.display="block";
+  draw();
+}
+function changeFont(f){saveState();if(selected&&selected.type==="text"){selected.font=f;draw();}}
+function toggleLock(){saveState();if(selected){selected.locked=!selected.locked;draw();}}
+
+function toggleColors(){
+  const c=document.getElementById("colors");
+  c.innerHTML="";
+  ELEMENT_COLORS.forEach(col=>{
+    const d=document.createElement("div");
+    d.className="thumb";
+    d.style.background = col==="gold"
+      ? "linear-gradient(135deg,#7a5c00,#fff3b0,#7a5c00)"
+      : col==="silver"
+      ? "linear-gradient(135deg,#777,#fff,#777)"
+      : col==="rosegold"
+      ? "linear-gradient(135deg,#8b5a5a,#f3c1c1,#8b5a5a)"
+      : col;
+    d.onclick=()=>{saveState();selected.color=col;c.style.display="none";draw();}
+    c.appendChild(d);
+  });
+  c.style.display=c.style.display==="block"?"none":"block";
+}
+
+function toggleCanvasPalette(){
+  const p=document.getElementById("canvasPalette");
+  p.innerHTML="";
+  CANVAS_BACKGROUNDS.forEach(c=>{
+    const d=document.createElement("div");
+    d.className="thumb";
+    d.style.background=c;
+    d.onclick=()=>{saveState();canvasBg=c;p.style.display="none";draw();}
+    p.appendChild(d);
+  });
+  p.style.display=p.style.display==="block"?"none":"block";
+}
+
+function saveImage(){
+  const a=document.createElement("a");
+  a.download="design.jpg";
+  a.href=canvas.toDataURL("image/jpeg",1);
+  a.click();
+}
+
+resizeCanvas();
+draw();
+</script>
+</body>
 </html>
