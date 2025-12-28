@@ -1,3 +1,124 @@
+<!DOCTYPE html>  <html>  
+<head>  
+<meta charset="UTF-8">  
+<title>Imaginary Gifts – Designer</title>  <link href="https://fonts.googleapis.com/css2?family=Poppins&family=Great+Vibes&family=Dancing+Script&family=Playfair+Display&family=Montserrat&family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet">  <style>  
+body{margin:0;background:#000;font-family:Poppins}  
+  
+/* LOGO */  
+#brand{  
+  background:#000;  
+  text-align:center;  
+  padding:30px;  
+  font-size:60px;  
+  font-family:"Cinzel Decorative",serif;  
+  background-image:linear-gradient(135deg,#7a5c00,#fff3b0,#7a5c00);  
+  -webkit-background-clip:text;  
+  -webkit-text-fill-color:transparent;  
+}  
+  
+/* CANVAS */  
+#canvas{  
+  background:#fff;  
+  border-radius:18px;  
+  display:block;  
+  margin:10px auto;  
+  touch-action:none;  
+}  
+  
+/* BUTTONS */  
+button,select{  
+  padding:30px;  
+  font-size:22px;  
+  background:#000;  
+  color:#f7f4e9;  
+  border:2px solid #f7f4e9;  
+  border-radius:14px;  
+}  
+  
+.big-btn{width:100%;margin:10px 0}  
+.small-btn{padding:12px 24px;font-size:14px}  
+  
+#controls{  
+  display:grid;  
+  grid-template-columns:1fr auto;  
+  gap:18px;  
+  padding:18px;  
+}  
+  
+.control-grid{  
+  display:grid;  
+  grid-template-columns:1fr 1fr;  
+  gap:18px;  
+  padding:18px;  
+}  
+  
+.right-tools{display:flex;gap:10px}  
+.mini-btn{padding:14px 16px;font-size:40px}  
+  
+.palette{  
+  display:none;  
+  overflow-x:auto;  
+  white-space:nowrap;  
+  padding:10px;  
+}  
+.thumb{  
+  width:50px;height:50px;  
+  border-radius:8px;  
+  border:2px solid #fff;  
+  display:inline-block;  
+  margin-right:10px;  
+}  
+</style>  </head>  <body>  <div id="brand">Imaginary Gifts</div>  
+<canvas id="canvas"></canvas>  <button class="small-btn" onclick="toggleCanvasPalette()">Canvas Colour</button>
+
+<div id="canvasPalette" class="palette"></div>  <button id="colorBtn" class="big-btn" onclick="toggleColors()">SELECT COLOUR</button>
+
+<div id="colors" class="palette"></div>  <div id="controls">  
+  <select onchange="addShape(this.value)">  
+  <option value="">Select Shape</option>  
+  <option value="rect">Rectangle</option>  
+  <option value="rounded">Rounded</option>  
+  <option value="circle">Circle</option>  
+  <option value="oval">Oval</option>  
+  <option value="pill">Pill</option>  
+  <option value="design1">Design 1</option>  
+  <option value="design2">Design 2</option>  
+  <option value="design3">Design 3</option>  
+  <option value="design4">Design 4</option>  
+  <option value="design5">Design 5</option>  
+</select>    <div class="right-tools">  
+    <button class="mini-btn" onclick="undo()">↶</button>  
+    <button class="mini-btn" onclick="toggleLock()">🔒</button>  
+    <button class="mini-btn" onclick="redo()">↷</button>  
+  </div>  
+</div>  <div class="control-grid">  
+  <button onclick="addText()">Add Text</button>  
+  <select onchange="changeFont(this.value)">  
+    <option value="">Select Font</option>  
+    <option>Cinzel Decorative</option>  
+    <option>Great Vibes</option>  
+    <option>Dancing Script</option>  
+    <option>Playfair Display</option>  
+    <option>Montserrat</option>  
+  </select>  
+</div>  <!-- NEW: LOGO & BORDER DROPDOWNS -->  <div class="control-grid">  
+  <select onchange="addVector('logo', this.value)">  
+    <option value="">Select Logo</option>  
+    <option value="om">Om</option>  
+    <option value="lotus">Lotus</option>  
+    <option value="diya">Diya</option>  
+    <option value="heart">Heart</option>  
+    <option value="star">Star</option>  
+  </select>    <select onchange="addVector('border', this.value)">  
+    <option value="">Select Border</option>  
+    <option value="simple">Simple</option>  
+    <option value="double">Double</option>  
+    <option value="rounded">Rounded</option>  
+    <option value="frame">Frame</option>  
+    <option value="wave">Wave</option>  
+  </select>  
+</div>  <button class="big-btn" onclick="saveImage()">SAVE DESIGN</button>
+
 <script>
 const canvas=document.getElementById("canvas");
 const ctx=canvas.getContext("2d");
@@ -239,4 +360,5 @@ function saveImage(){
 
 resizeCanvas();
 draw();
-</script>
+</script> </body>  
+</html>
