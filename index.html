@@ -58,7 +58,6 @@ button,select{
 }
 
 .right-tools{display:flex;gap:10px}
-
 .mini-btn{padding:14px 16px;font-size:40px}
 
 .palette{
@@ -117,9 +116,25 @@ button,select{
   </select>
 </div>
 
+<!-- NEW: LOGO & BORDER DROPDOWNS -->
 <div class="control-grid">
-  <button onclick="addVector('logo','om')">Add Logo</button>
-  <button onclick="addVector('border','simple')">Add Border</button>
+  <select onchange="addVector('logo', this.value)">
+    <option value="">Select Logo</option>
+    <option value="om">Om</option>
+    <option value="lotus">Lotus</option>
+    <option value="diya">Diya</option>
+    <option value="heart">Heart</option>
+    <option value="star">Star</option>
+  </select>
+
+  <select onchange="addVector('border', this.value)">
+    <option value="">Select Border</option>
+    <option value="simple">Simple</option>
+    <option value="double">Double</option>
+    <option value="rounded">Rounded</option>
+    <option value="frame">Frame</option>
+    <option value="wave">Wave</option>
+  </select>
 </div>
 
 <button class="big-btn" onclick="saveImage()">SAVE DESIGN</button>
@@ -134,14 +149,21 @@ let mode=null,sx=0,sy=0,startAngle=0,lastTapTime=0;
 
 let history=[],redoStack=[];
 
-/* VECTOR LIBRARY (200x200 design space) */
+/* VECTOR LIBRARY (200x200) */
 const VECTOR_LOGOS={
-  om:"M100 20 C60 20 40 60 60 90 C40 120 60 170 100 170 C140 170 160 120 140 90 C160 60 140 20 100 20 Z"
+  om:"M100 20 C60 20 40 60 60 90 C40 120 60 170 100 170 C140 170 160 120 140 90 C160 60 140 20 100 20 Z",
+  lotus:"M100 20 L120 60 L160 80 L120 100 L100 160 L80 100 L40 80 L80 60 Z",
+  diya:"M40 120 C100 180 160 120 100 60 Z",
+  heart:"M100 160 C20 80 60 20 100 60 C140 20 180 80 100 160 Z",
+  star:"M100 20 L120 80 L180 80 L130 120 L150 180 L100 140 L50 180 L70 120 L20 80 L80 80 Z"
 };
 
 const VECTOR_BORDERS={
   simple:"M10 10 H190 V190 H10 Z",
-  double:"M10 10 H190 V190 H10 Z M30 30 H170 V170 H30 Z"
+  double:"M10 10 H190 V190 H10 Z M30 30 H170 V170 H30 Z",
+  rounded:"M20 10 H180 Q190 10 190 20 V180 Q190 190 180 190 H20 Q10 190 10 180 V20 Q10 10 20 10 Z",
+  frame:"M40 10 H160 V40 H190 V160 H160 V190 H40 V160 H10 V40 H40 Z",
+  wave:"M10 30 Q50 10 90 30 T170 30 V170 Q130 190 90 170 T10 170 Z"
 };
 
 const ELEMENT_COLORS=["#000","#fff","#5a3a22","#e74c3c","#3498db","#2ecc71","gold","silver","rosegold"];
@@ -241,7 +263,6 @@ function getPos(e){
   return{x:(t.clientX-r.left)*(canvas.width/r.width),y:(t.clientY-r.top)*(canvas.height/r.height)};
 }
 
-/* ---- Interaction logic (unchanged, stable) ---- */
 canvas.onmousedown=canvas.ontouchstart=e=>{
   saveState();e.preventDefault();
   const p=getPos(e);
@@ -284,7 +305,6 @@ canvas.onmousemove=canvas.ontouchmove=e=>{
 
 canvas.onmouseup=canvas.ontouchend=()=>mode=null;
 
-/* ---- Controls ---- */
 function saveState(){history.push(JSON.stringify({objects,canvasBg}));redoStack=[];}
 function undo(){if(!history.length)return;redoStack.push(JSON.stringify({objects,canvasBg}));const s=JSON.parse(history.pop());objects=s.objects;canvasBg=s.canvasBg;selected=null;draw();}
 function redo(){if(!redoStack.length)return;history.push(JSON.stringify({objects,canvasBg}));const s=JSON.parse(redoStack.pop());objects=s.objects;canvasBg=s.canvasBg;selected=null;draw();}
@@ -298,6 +318,7 @@ function addShape(s){
 }
 
 function addVector(kind,key){
+  if(!key) return;
   saveState();
   const path=kind==="logo"?VECTOR_LOGOS[key]:VECTOR_BORDERS[key];
   const size=kind==="border"?canvas.width*0.8:canvas.width*0.25;
