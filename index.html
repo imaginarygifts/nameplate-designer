@@ -204,6 +204,22 @@ ctx.translate(o.x+o.w/2,o.y+o.h/2);
 ctx.rotate(o.rotation);
 ctx.translate(-o.w/2,-o.h/2);
 
+if(o.type==="shape"){      
+  ctx.fillStyle=["gold","silver","rosegold"].includes(o.color)?metallic(o.color,o.w):o.color;      
+  drawShape(o);      
+}      
+if(o.type==="text"){      
+  ctx.font=`${o.size}px ${o.font}`;      
+  ctx.textBaseline="top";      
+  o.w=ctx.measureText(o.text).width;      
+  o.h=o.size;      
+  ctx.fillStyle=["gold","silver","rosegold"].includes(o.color)?metallic(o.color,o.w):o.color;      
+  ctx.fillText(o.text,0,0);      
+}      
+if(o===selected) drawHandles(o);      
+ctx.restore();
+
+});
 if(o.type === "vector"){
   ctx.save();
 
@@ -221,23 +237,6 @@ if(o.type === "vector"){
   ctx.fill(p);
   ctx.restore();
 }
-
-if(o.type==="shape"){      
-  ctx.fillStyle=["gold","silver","rosegold"].includes(o.color)?metallic(o.color,o.w):o.color;      
-  drawShape(o);      
-}      
-if(o.type==="text"){      
-  ctx.font=`${o.size}px ${o.font}`;      
-  ctx.textBaseline="top";      
-  o.w=ctx.measureText(o.text).width;      
-  o.h=o.size;      
-  ctx.fillStyle=["gold","silver","rosegold"].includes(o.color)?metallic(o.color,o.w):o.color;      
-  ctx.fillText(o.text,0,0);      
-}      
-if(o===selected) drawHandles(o);      
-ctx.restore();
-
-});
 }
 
 function drawShape(o){
