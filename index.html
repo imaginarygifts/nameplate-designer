@@ -77,6 +77,12 @@ font-size:80px;
   display:inline-block;
   margin-right:15px;
 }
+#sizeSlider{
+  width: calc(100% - 40px);
+  margin: 20px auto;
+  display: block;
+  accent-color: #fff3b0; /* luxury gold tone */
+}
 </style>
 </head>
 
@@ -85,7 +91,14 @@ font-size:80px;
 <div id="brand">Imaginary Gifts</div>
 <canvas id="canvas"></canvas>
 
-<button class="small-btn" onclick="toggleCanvasPalette()">Canvas Colour</button>
+<button class="small-btn" onclick="toggleCanvasPalette()">Canvas Colour</button> <input
+  id="sizeSlider"
+  type="range"
+  min="30"
+  max="800"
+  value="100"
+  style="display:none"
+/>
 <div id="canvasPalette" class="palette"></div>
 
 <button id="colorBtn" class="big-btn" onclick="toggleColors()">SELECT COLOUR</button>
@@ -303,6 +316,33 @@ function drawIcon(x,y,t){
   ctx.fillText(t,x-6,y+6);
 }
 
+function updateSizeSlider(){
+  const slider = document.getElementById("sizeSlider");
+
+  if(!selected){
+    slider.style.display = "none";
+    return;
+  }
+
+  slider.style.display = "block";
+  slider.value = selected.w;
+}
+document.getElementById("sizeSlider").oninput = function(){
+  if(!selected || selected.locked) return;
+
+  const newW = Number(this.value);
+  const ratio = selected.h / selected.w;
+
+  selected.w = newW;
+  selected.h = newW * ratio;
+
+  if(selected.type === "text"){
+    selected.size = newW * 0.3; // text scaling logic
+  }
+
+  draw();
+};
+
 function drawHandles(o){
   ctx.strokeStyle=o.locked?"#999":"#1e90ff";
   ctx.strokeRect(0,0,o.w,o.h);
@@ -354,7 +394,8 @@ if(rx>0&&rx<o.w&&ry>0&&ry<o.h)
 {selected=o;if(!o.locked){mode="move";sx=p.x;sy=p.y;}break;}
   }
 
-  colorBtn.style.display=selected?"block":"none";
+  colorBtn.style.display = selected ? "block" : "none";
+updateSizeSlider();
   draw();
 };
 
@@ -471,6 +512,7 @@ function saveImage(){
 resizeCanvas();
 draw();
 colorBtn.style.display = "none";
+document.getElementById("sizeSlider").style.display = "none";
 </script>
 
 </body>
