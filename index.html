@@ -396,7 +396,8 @@ function getPos(e){
 canvas.onmousedown=canvas.ontouchstart=e=>{
   saveState();e.preventDefault();
   const p=getPos(e);
-  selected=null;mode=null;
+  clearSelection();
+mode = null;
 
   for(let i=objects.length-1;i>=0;i--){
     const o=objects[i];
@@ -482,7 +483,7 @@ function addShape(s){
   draw();
 }
 
-function addVector(kind,key){
+function addVector(kind,key){clearSelection();
   if(!key) return;
   saveState();
   const path=kind==="logo"?VECTOR_LOGOS[key]:VECTOR_BORDERS[key];
@@ -491,7 +492,7 @@ function addVector(kind,key){
   objects.push(selected);draw();
 }
 
-function addText(){
+function addText(){clearSelection();
   saveState();
   const t=prompt("Text","Your Name");
   if(!t)return;
