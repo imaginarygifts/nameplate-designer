@@ -1,519 +1,398 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>Imaginary Gifts – Designer</title>
+<!DOCTYPE html>  <html lang="en">    <head>      <meta charset="UTF-8">      
+<title>SellFix Designing | Catalogue</title>      
+<meta name="viewport" content="width=device-width, initial-scale=1.0">  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">      
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>  <style>      
+*{box-sizing:border-box}      
+body{margin:0;font-family:Inter;background:#000;color:#fff}    /* HEADER */  
+.header{  
+position:sticky;top:0;z-index:1000;  
+background:#0b0b0b;  
+display:flex;align-items:center;gap:10px;  
+padding:10px 14px;border-bottom:1px solid #1f1f1f  
+}  
+.header img{height:34px}  
+.header span{font-weight:600}  /* CONTAINER */
+.container{max-width:460px;margin:auto;padding:0px 16px 40px}
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins&family=Great+Vibes&family=Dancing+Script&family=Playfair+Display&family=Montserrat&family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet">
+h2{font-size:20px;margin:18px 0}
 
-<style>
-body{margin:0;background:#000;font-family:Poppins}
-
-/* LOGO */
-#brand{
-  background:#000;
-  text-align:center;
-  padding:30px;
-  font-size:60px;
-  font-family:"Cinzel Decorative",serif;
-  background-image:linear-gradient(135deg,#7a5c00,#fff3b0,#7a5c00);
-  -webkit-background-clip:text;
-  -webkit-text-fill-color:transparent;
+.sub-tag{
+display:inline-block;
+background:linear-gradient(45deg,#feda75,#fa7e1e,#d62976,#962fbf,#4f5bd5);
+color:#fff;border:none;
+padding:8px 14px;border-radius:20px;
+font-size:13px;margin-bottom:12px
 }
 
-/* CANVAS */
-#canvas{
-  background:#fff;
-  border-radius:18px;
-  display:block;
-  margin:10px auto;
-  touch-action:none;
+/* CARD */
+.card{
+background:#3a3a3a;border-radius:16px;
+padding:14px;margin-bottom:22px
+}
+.variant-title{font-weight:600;margin-bottom:6px}
+
+/* IMAGES */
+.images{display:flex;gap:10px;overflow-x:auto;margin-bottom:10px}
+.images img{width:100px;height:100px;object-fit:cover;border-radius:10px}
+
+/* FORM */
+label{font-size:12px;color:#aaa;margin-top:10px;display:block}
+
+/* SIZE DROPDOWN */
+.size-select{
+width:100%;
+padding:10px;
+border-radius:10px;
+border:none;
+margin-top:4px;
+background:#f5e642;
+color:#000;
+font-weight:600;
 }
 
-/* BUTTONS */
-button,select{
-  height: 120px;
-  padding:30px;
-  font-size:35px;
-  background:#000;
-  color:#f7f4e9;
-  border:2px solid #f7f4e9;
-  border-radius:14px;
+/* NORMAL DROPDOWN */
+select{
+width:100%;
+padding:10px;
+border-radius:10px;
+border:none;
+margin-top:4px;
 }
 
-.big-btn{width:100%;margin:30px 0}
-.small-btn{padding:12px 24px;height: 90px;font-size:20px;
+/* PRICE */
+.price{font-size:18px;font-weight:600;margin-top:12px}
+
+/* ORDER */
+.order-btn{
+margin-top:14px;
+background:#25D366;
+color:#fff;
+text-align:center;
+padding:14px;
+border-radius:30px;
+text-decoration:none;
+font-weight:600;
+display:block;
 }
 
-#controls{
-  display:grid;
-  grid-template-columns:1fr auto;
-  gap:18px;
-  padding:18px;
+/* FLOATING SHARE /
+.floating-share{
+position:fixed;bottom:22px;right:18px;
+width:54px;height:54px;border-radius:50%;
+background:linear-gradient(45deg,#feda75,#fa7e1e,#d62976,#962fbf,#4f5bd5);
+color:#fff;border:none;
+display:flex;align-items:center;justify-content:center;
+font-size:18px;box-shadow:0 8px 20px rgba(0,0,0,.4);
+z-index:9999;cursor:pointer
+}
+/ IMAGE ZOOM POPUP /
+#imgPopup{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,0.85);
+display:flex;
+align-items:center;
+justify-content:center;
+z-index:10000;
+}
+#imgPopup img{
+max-width:90%;
+max-height:90%;
+border-radius:14px;
+}
+#closePopup{
+position:absolute;
+top:18px;
+right:22px;
+font-size:32px;
+color:#fff;
+cursor:pointer;
+}
+/ ===== CLEAN YOUTUBE SHORTS CAROUSEL ===== */
+.shorts-carousel-horizontal{
+display:flex;
+gap:14px;
+overflow-x:auto;
 }
 
-.control-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:18px;
-  padding:18px;
+.shorts-slide{
+position:relative;
+flex:0 0 150px;
+height:275px;
+border-radius:16px;
+overflow:hidden;
+background:#000;
 }
 
-.right-tools{display:flex;gap:10px}
-.mini-btn{padding:14px 16px;
-font-size:80px;
+.shorts-thumbnail{
+position:absolute;
+inset:0;
+background-size:cover;
+background-position:center;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:48px;
+color:#fff;
+cursor:pointer;
+}
+</style>  </head>  <body>  <div class="header">
+<img src="sellixlogo1.png">
+
+</div>  <div class="container">  <!-- ===== YOUTUBE VIDEO SHOWCASE ===== -->  <div class="shorts-carousel-horizontal">    <div class="shorts-slide" data-video-id="gmuCGNFX-Rc">      
+    <div class="shorts-thumbnail"      
+      style="background-image:url('https://img.youtube.com/vi/gmuCGNFX-Rc/maxresdefault.jpg')">      
+      ▶      
+    </div>      
+  </div>    <div class="shorts-slide" data-video-id="gmuCGNFX-Rc">      
+    <div class="shorts-thumbnail"      
+      style="background-image:url('https://img.youtube.com/vi/gmuCGNFX-Rc/maxresdefault.jpg')">      
+      ▶      
+    </div>      
+  </div>      
+<div class="shorts-slide" data-video-id="gmuCGNFX-Rc">      
+    <div class="shorts-thumbnail"      
+      style="background-image:url('https://img.youtube.com/vi/gmuCGNFX-Rc/maxresdefault.jpg')">      
+      ▶      
+    </div>      
+  </div>      
+<div class="shorts-slide" data-video-id="gmuCGNFX-Rc">      
+    <div class="shorts-thumbnail"      
+      style="background-image:url('https://img.youtube.com/vi/gmuCGNFX-Rc/maxresdefault.jpg')">      
+      ▶      
+    </div>      
+  </div>  </div>      
+<h2>🪧 Name Plates</h2>  <!-- ================= LED NAME PLATES ================= -->  <div class="sub-tag">LED Name Plates</div>  <!-- WHITE SHADOW -->  <div class="card">      
+  <div class="variant-title">White Shadow LED Name Plate</div>      
+  <div class="images">      
+    <img src="https://drive.google.com/uc?export=view&id=1oyr75A4X6azJRo2w8cuiMTT3vr9KovMA"      
+onclick="openImage(this)">      
+<img src="https://drive.google.com/uc?export=view&id=1oyr75A4X6azJRo2w8cuiMTT3vr9KovMA"onclick="openImage(this)">      
+<img src="https://drive.google.com/uc?export=view&id=1oyr75A4X6azJRo2w8cuiMTT3vr9KovMA"onclick="openImage(this)">      
+<img src="https://drive.google.com/uc?export=view&id=1oyr75A4X6azJRo2w8cuiMTT3vr9KovMA"onclick="openImage(this)">      
+<img src="https://drive.google.com/uc?export=view&id=1oyr75A4X6azJRo2w8cuiMTT3vr9KovMA"onclick="openImage(this)">      
+<img src="https://drive.google.com/uc?export=view&id=1oyr75A4X6azJRo2w8cuiMTT3vr9KovMA"onclick="openImage(this)">      
+  </div>  <label>Size</label>    
+<select class="size-select" onchange="updatePrice(this,'whiteShadow')">    
+<option>8x12</option><option>12x12</option><option>12x18</option>    
+<option>12x24</option><option>18x18</option><option>18x24</option>    
+<option>18x30</option><option>24x24</option><option>24x30</option><option>24x36</option>    
+</select>  <label>Background Colour</label>  
+<select id="bg-whiteShadow">  <option>Black</option><option>White</option><option>Brown</option><option>Wooden</option>    
+</select>  <label>Font Colour</label>  
+<select id="font-whiteShadow">  <option>Gold</option><option>Rose Gold</option><option>Silver</option><option>Black</option><option>White</option>    
+</select>    <div class="price">₹ <span id="whiteShadowPrice"></span></div>    <a class="order-btn" onclick="orderNow('LED Name Plate','White Shadow LED','whiteShadow')">      
+    Order on WhatsApp      
+  </a>      
+</div>  <!-- SHADOW LED -->  <div class="card">      
+  <div class="variant-title">Shadow LED Name Plate</div>  <label>Size</label>    
+<select class="size-select" onchange="updatePrice(this,'shadowLed')">    
+<option>8x12</option><option>12x18</option><option>12x24</option>    
+<option>18x24</option><option>24x30</option>    
+</select>  <label>Background Colour</label>  
+<select id="bg-shadowLed">  <option>Black</option><option>White</option><option>Brown</option><option>Wooden</option>    
+</select>  <label>Font Colour</label>  
+<select id="font-shadowLed">  <option>Gold</option><option>Rose Gold</option><option>Silver</option><option>Black</option><option>White</option>    
+</select>    <div class="price">₹ <span id="shadowLedPrice"></span></div>    <a class="order-btn" onclick="orderNow('LED Name Plate','Shadow LED','shadowLed')">      
+    Order on WhatsApp      
+  </a>      
+</div>  <!-- LED LETTERS -->  <div class="card">      
+  <div class="variant-title">LED Letters Name Plate</div>  <label>Size</label>    
+<select class="size-select" onchange="updatePrice(this,'ledLetters')">    
+<option>12x18</option><option>12x24</option><option>18x24</option><option>24x30</option>    
+</select>  <label>Background Colour</label>  
+<select id="bg-ledLetters">  <option>Black</option><option>White</option><option>Brown</option><option>Wooden</option>    
+</select>  <label>Font Colour</label>  
+<select id="font-ledLetters">  <option>Gold</option><option>Rose Gold</option><option>Silver</option><option>Black</option><option>White</option>    
+</select>    <div class="price">₹ <span id="ledLettersPrice"></span></div>    <a class="order-btn" onclick="orderNow('LED Name Plate','LED Letters','ledLetters')">      
+    Order on WhatsApp      
+  </a>      
+</div>  <!-- CUTOUT LED -->  <div class="card">      
+  <div class="variant-title">Cutout LED Name Plate</div>  <label>Size</label>    
+<select class="size-select" onchange="updatePrice(this,'cutoutLed')">    
+<option>12x18</option><option>12x24</option><option>18x24</option><option>24x30</option><option>24x36</option>    
+</select>  <label>Background Colour</label>  
+<select id="bg-cutoutLed">  <option>Black</option><option>White</option><option>Brown</option><option>Wooden</option>    
+</select>  <label>Font Colour</label>  
+<select id="font-cutoutLed">  <option>Gold</option><option>Rose Gold</option><option>Silver</option><option>Black</option><option>White</option>    
+</select>    <div class="price">₹ <span id="cutoutLedPrice"></span></div>    <a class="order-btn" onclick="orderNow('LED Name Plate','Cutout LED','cutoutLed')">      
+    Order on WhatsApp      
+  </a>      
+</div>  <!-- ================= ACRYLIC ================= -->  <div class="sub-tag">Acrylic Name Plates</div>  <div class="card">      
+  <div class="variant-title">Glossy Black Acrylic</div>  <label>Size</label>    
+<select class="size-select" onchange="updatePrice(this,'acrylicBlack')">    
+<option>8x12</option><option>12x18</option><option>12x24</option>    
+</select>  <label>Background Colour</label>  
+<select id="bg-acrylicBlack">  <option>Black</option><option>White</option><option>Brown</option><option>Wooden</option>    
+</select>  <label>Font Colour</label>  
+<select id="font-acrylicBlack">  <option>Gold</option><option>Rose Gold</option><option>Silver</option><option>Black</option><option>White</option>    
+</select>    <div class="price">₹ <span id="acrylicBlackPrice"></span></div>  <a class="order-btn" onclick="orderNow('Acrylic Name Plate','Glossy Black','acrylicBlack')">Order</a>  </div>  <div class="card">      
+  <div class="variant-title">Glossy White Acrylic</div>  <label>Size</label>    
+<select class="size-select" onchange="updatePrice(this,'acrylicWhite')">    
+<option>8x12</option><option>12x18</option><option>12x24</option>    
+</select>  <label>Background Colour</label>  
+<select id="bg-acrylicWhite">  <option>Black</option><option>White</option><option>Brown</option><option>Wooden</option>    
+</select>  <label>Font Colour</label>  
+<select id="font-acrylicWhite">  <option>Gold</option><option>Rose Gold</option><option>Silver</option><option>Black</option><option>White</option>    
+</select>    <div class="price">₹ <span id="acrylicWhitePrice"></span></div>  <a class="order-btn" onclick="orderNow('Acrylic Name Plate','Glossy White','acrylicWhite')">Order</a>  </div>  <div class="card">      
+  <div class="variant-title">Wood Texture Acrylic</div>  <label>Size</label>    
+<select class="size-select" onchange="updatePrice(this,'acrylicWood')">    
+<option>12x18</option><option>12x24</option><option>18x24</option>    
+</select>  <label>Background Colour</label>  
+<select id="bg-acrylicWood">  <option>Black</option><option>White</option><option>Brown</option><option>Wooden</option>    
+</select>  <label>Font Colour</label>  
+<select id="font-acrylicWood">  <option>Gold</option><option>Rose Gold</option><option>Silver</option><option>Black</option><option>White</option>    
+</select>    <div class="price">₹ <span id="acrylicWoodPrice"></span></div>  <a class="order-btn" onclick="orderNow('Acrylic Name Plate','Wood Texture','acrylicWood')">Order</a>  </div>  <!-- ================= RESIN ================= -->  <div class="sub-tag">Resin Name Plates</div>  <div class="card">      
+  <div class="variant-title">Circle Resin Name Plate</div>  <label>Size</label>    
+<select class="size-select" onchange="updatePrice(this,'resinCircle')">    
+<option>12x12</option><option>18x18</option><option>24x24</option>    
+</select>  <label>Background Colour</label>  
+<select id="bg-resinCircle">  <option>Black</option><option>White</option><option>Brown</option><option>Wooden</option>    
+</select>  <label>Font Colour</label>  
+<select id="font-resinCircle">  <option>Gold</option><option>Rose Gold</option><option>Silver</option><option>Black</option><option>White</option>    
+</select>    <div class="price">₹ <span id="resinCirclePrice"></span></div>  <a class="order-btn" onclick="orderNow('Resin Name Plate','Circle','resinCircle')">Order</a>  </div>  <div class="card">      
+  <div class="variant-title">Rectangle Resin Name Plate</div>  <label>Size</label>    
+<select class="size-select" onchange="updatePrice(this,'resinRect')">    
+<option>12x18</option><option>12x24</option><option>18x24</option>    
+</select>  <label>Background Colour</label>  
+<select id="bg-resinRect">  <option>Black</option><option>White</option><option>Brown</option><option>Wooden</option>    
+</select>  <label>Font Colour</label>  
+<select id="font-resinRect">  <option>Gold</option><option>Rose Gold</option><option>Silver</option><option>Black</option><option>White</option>    
+</select>    <div class="price">₹ <span id="resinRectPrice"></span></div>  <a class="order-btn" onclick="orderNow('Resin Name Plate','Rectangle','resinRect')">Order</a>  </div>  <div class="card">      
+  <div class="variant-title">Agate Resin Name Plate</div>  <label>Size</label>    
+<select class="size-select" onchange="updatePrice(this,'resinAgate')">    
+<option>12x18</option><option>18x24</option><option>24x30</option>    
+</select>  <label>Background Colour</label>  
+<select id="bg-resinAgate">  <option>Black</option><option>White</option><option>Brown</option><option>Wooden</option>    
+</select>  <label>Font Colour</label>  
+<select id="font-resinAgate">  <option>Gold</option><option>Rose Gold</option><option>Silver</option><option>Black</option><option>White</option>    
+</select>    <div class="price">₹ <span id="resinAgatePrice"></span></div>  <a class="order-btn" onclick="orderNow('Resin Name Plate','Agate','resinAgate')">Order</a>  </div>  </div>  <button class="floating-share" onclick="navigator.share({title:'SellFix Designing Catalogue',url:location.href})">      
+  <i class="fa-solid fa-share-nodes"></i>      
+</button>  <script>      
+const priceTable={      
+  whiteShadow:{"8x12":1200,"12x12":1500,"12x18":2200,"12x24":3000,"18x18":3600,"18x24":4300,"18x30":5200,"24x24":6100,"24x30":7200,"24x36":8500},      
+  shadowLed:{"8x12":1000,"12x18":1800,"12x24":2600,"18x24":3400,"24x30":4800},      
+  ledLetters:{"12x18":2200,"12x24":3000,"18x24":4200,"24x30":6000},      
+  cutoutLed:{"12x18":2400,"12x24":3200,"18x24":4500,"24x30":6200,"24x36":7800},      
+  acrylicBlack:{"8x12":900,"12x18":1600,"12x24":2400},      
+  acrylicWhite:{"8x12":850,"12x18":1500,"12x24":2300},      
+  acrylicWood:{"12x18":1700,"12x24":2600,"18x24":3500},      
+  resinCircle:{"12x12":2200,"18x18":3800,"24x24":5500},      
+  resinRect:{"12x18":2600,"12x24":3600,"18x24":4800},      
+  resinAgate:{"12x18":4200,"18x24":6500,"24x30":9000}      
+};    function updatePrice(sel,key){  
+document.getElementById(key+"Price").innerText=  
+priceTable[key][sel.value];  
+}  function orderNow(category,variant,key){
+const size=document.querySelector([onchange*="${key}"]).value;
+const bg=document.getElementById("bg-"+key).value;
+const font=document.getElementById("font-"+key).value;
+const price=document.getElementById(key+"Price").innerText;
+
+const msg=Hi SellFix Designing 👋     Category: ${category}     Variant: ${variant}     Size: ${size}     Background Colour: ${bg}     Font Colour: ${font}     Final Price: ₹${price};
+
+window.open("https://wa.me/917030191819?text="+encodeURIComponent(msg));
 }
 
-.palette{
-  display:none;
-  overflow-x:auto;
-  white-space:nowrap;
-  padding:10px;
-}
-.thumb{
-  width:85px;height:85px;
-  border-radius:8px;
-  border:2px solid #fff;
-  display:inline-block;
-  margin-right:15px;
-}
-#sizeSlider{
-  width: calc(100% - 40px);
-  margin: 20px auto;
-  display: block;
-  accent-color: #fff3b0; /* luxury gold tone */
-}
-</style>
-</head>
+/* LOAD DEFAULT PRICES */
+document.querySelectorAll(".size-select").forEach(sel=>{
+const key=sel.getAttribute("onchange").match(/'(.+?)'/)[1];
+document.getElementById(key+"Price").innerText=
+priceTable[key][sel.value];
+});
+</script>  <!-- IMAGE ZOOM POPUP -->  <div id="imgPopup" style="display:none;">
+<span id="closePopup">×</span>
+<img id="popupImg">
 
-<body>
+</div>      
+<script>      
+function openImage(img){      
+  document.getElementById("popupImg").src = img.src;      
+  document.getElementById("imgPopup").style.display = "flex";      
+}  document.getElementById("closePopup").onclick = function(){    
+document.getElementById("imgPopup").style.display = "none";    
+};  document.getElementById("imgPopup").onclick = function(e){  
+if(e.target.id === "imgPopup"){  
+document.getElementById("imgPopup").style.display = "none";  
+}  
+};  
+</script>  <script src="https://www.youtube.com/iframe_api"></script>  <script>    let players = [];  function onYouTubeIframeAPIReady() {
+const slides = document.querySelectorAll('.shorts-slide');
 
-<div id="brand">Imaginary Gifts</div>
-<canvas id="canvas"></canvas>
+slides.forEach((slide, index) => {
+const videoId = slide.dataset.videoId;
 
-<button class="small-btn" onclick="toggleCanvasPalette()">Canvas Colour</button> <input
-  id="sizeSlider"
-  type="range"
-  min="30"
-  max="800"
-  value="100"
-  style="display:none"
-/>
-<div id="canvasPalette" class="palette"></div>
+const iframe = document.createElement('iframe');
+iframe.src = https://www.youtube.com/embed/${videoId}?enablejsapi=1&playsinline=1&controls=0&rel=0;
+iframe.allow = "autoplay; encrypted-media";
+iframe.style.display = "none";
+iframe.style.width = "100%";
+iframe.style.height = "100%";
+iframe.frameBorder = "0";
 
-<button id="colorBtn" class="big-btn" onclick="toggleColors()">SELECT COLOUR</button>
-<div id="colors" class="palette"></div>
+slide.appendChild(iframe);
 
-<div id="controls">
-  <select onchange="addShape(this.value)">
-  <option value="">Select Shape</option>
-  <option value="rect">Rectangle</option>
-  <option value="rounded">Rounded</option>
-  <option value="circle">Circle</option>
-  <option value="oval">Oval</option>
-  <option value="pill">Pill</option>
-  <option value="design1">Design 1</option>
-  <option value="design2">Design 2</option>
-  <option value="design3">Design 3</option>
-  <option value="design4">Design 4</option>
-  <option value="design5">Design 5</option>
-</select>
+const player = new YT.Player(iframe, {
+events: {
+onReady: () => {
+players[index] = player;
 
-  <div class="right-tools">
-    <button class="mini-btn" onclick="undo()">↶</button>
-    <button class="mini-btn" onclick="toggleLock()">🔒</button>
-    <button class="mini-btn" onclick="redo()">↷</button>
-  </div>
-</div>
+slide.addEventListener('click', () => {      
+    players.forEach((p, i) => {      
+      p.pauseVideo();      
+      slides[i].querySelector('iframe').style.display = "none";      
+      slides[i].querySelector('.shorts-thumbnail').style.display = "flex";      
+    });      
 
-<div class="control-grid">
-  <button onclick="addText()">Add Text</button>
-  <select onchange="changeFont(this.value)">
-    <option value="">Select Font</option>
-    <option>Cinzel Decorative</option>
-    <option>Great Vibes</option>
-    <option>Dancing Script</option>
-    <option>Playfair Display</option>
-    <option>Montserrat</option>
-  </select>
-</div>
-
-<!-- NEW: LOGO & BORDER DROPDOWNS -->
-<div class="control-grid">
-  <select onchange="addVector('logo', this.value)">
-    <option value="">Select Logo</option>
-    <option value="om">Om</option>
-    <option value="lotus">Lotus</option>
-    <option value="diya">Diya</option>
-    <option value="heart">Heart</option>
-    <option value="star">Star</option>
-  </select>
-
-  <select onchange="addVector('border', this.value)">
-    <option value="">Select Border</option>
-    <option value="simple">Simple</option>
-    <option value="double">Double</option>
-    <option value="rounded">Rounded</option>
-    <option value="frame">Frame</option>
-    <option value="wave">Wave</option>
-  </select>
-</div>
-
-<button class="big-btn" onclick="saveImage()">SAVE DESIGN</button>
-
-<script>
-const canvas=document.getElementById("canvas");
-const ctx=canvas.getContext("2d");
-
-let canvasBg="#fff";
-let canvasBgImage = null;
-let objects=[],selected=null;
-let mode=null,sx=0,sy=0,startAngle=0,lastTapTime=0;
-
-let history=[],redoStack=[];
-
-/* VECTOR LIBRARY (200x200) */
-
-const VECTOR_LOGOS={
-  om:"M25 60c0,1 2,4 3,6 1,2 2,4 3,6 1,1 5,11 6,11 3,0 11,-8 22,-12 9,-3 20,-3 26,3 3,3 5,8 2,13 -2,4 -5,6 -9,7 -12,5 -19,2 -29,1l10 31c1,0 4,-1 5,-2 15,-3 31,2 30,20 -1,9 -6,15 -11,18 -5,4 -14,7 -22,7 -19,0 -31,-11 -38,-21 -9,-13 -12,-27 -15,-43 -1,1 -1,5 -2,7 -1,7 1,17 2,24 3,14 8,26 16,36 8,10 18,18 31,21 34,9 58,-15 56,-45 -1,-5 -2,-10 -3,-14 -1,-2 -2,-4 -3,-6 -1,-2 -2,-4 -3,-6 5,2 8,4 14,3 12,-3 22,-15 28,-24 1,-2 2,-4 3,-6 3,-4 8,-9 14,-11 11,-3 17,6 19,14 6,18 0,40 -16,49 -13,9 -27,4 -35,-7 -2,-2 -3,-4 -4,-6l-3 -5c0,1 -1,7 -1,10 -1,4 0,9 1,13 4,21 24,34 44,25 12,-5 20,-14 24,-27 5,-14 5,-30 2,-45 -3,-14 -11,-25 -19,-31 -11,-9 -26,-11 -38,-2 -5,3 -7,5 -10,9 -5,5 -8,13 -12,20 -3,5 -6,11 -12,13 -7,1 -13,-3 -19,-5 -1,0 -1,0 -1,0 1,-1 2,-2 3,-3 8,-6 14,-11 16,-22 4,-14 0,-28 -9,-34 -15,-12 -48,-6 -63,7 -1,0 -2,2 -3,3zm151 -15c0,-1 -1,-2 -1,-3l-13 -16c-1,0 -3,2 -4,3 -4,4 -8,6 -13,9 -14,8 -32,7 -45,-3 -4,-4 -7,-8 -9,-12 -1,-2 -1,-4 -2,-6 -1,1 -1,7 0,9 0,8 4,16 9,22 5,6 13,12 22,14 15,4 33,-1 46,-9 3,-1 9,-6 10,-8zm-70 -22c2,2 5,4 7,6 0,1 0,1 1,1l10 9 4 -4c2,-2 12,-12 12,-13l-4 -4c-2,-3 -7,-7 -9,-9l-5 -4 -6 7c-2,2 -9,10 -10,11z",
-  lotus:"M100 20 L120 60 L160 80 L120 100 L100 160 L80 100 L40 80 L80 60 Z",
-  diya:"M40 120 C100 180 160 120 100 60 Z",
-  heart:"M100 160 C20 80 60 20 100 60 C140 20 180 80 100 160 Z",
-  star:"M100 20 L120 80 L180 80 L130 120 L150 180 L100 140 L50 180 L70 120 L20 80 L80 80 Z"
-};
-
-const VECTOR_BORDERS={
-  simple:"M10 10 H190 V190 H10 Z",
-  double:"M10 10 H190 V190 H10 Z M30 30 H170 V170 H30 Z",
-  rounded:"M20 10 H180 Q190 10 190 20 V180 Q190 190 180 190 H20 Q10 190 10 180 V20 Q10 10 20 10 Z",
-  frame:"M40 10 H160 V40 H190 V160 H160 V190 H40 V160 H10 V40 H40 Z",
-  wave:"M10 30 Q50 10 90 30 T170 30 V170 Q130 190 90 170 T10 170 Z"
-};
-
-/* VECTOR SHAPES (200x200 design space) */
-const VECTOR_SHAPES = {
-  design1: "M20 20 H180 V180 H20 Z",
-  design2: "M100 10 L190 100 L100 190 L10 100 Z",
-  design3: "M100 20 C40 20 20 100 100 180 C180 100 160 20 100 20 Z",
-  design4: "M20 60 Q100 10 180 60 V140 Q100 190 20 140 Z",
-  design5: "M40 20 H160 V60 H120 V180 H80 V60 H40 Z"
-};
-
-const ELEMENT_COLORS=["#000","#fff","#5a3a22","#e74c3c","#3498db","#2ecc71","gold","silver","rosegold"];
-const CANVAS_BACKGROUNDS=["#fff","#000","#ccc","#5a3a22"];
-const CANVAS_BG_IMAGES = [
-  "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTzGPgsKbayZ8wOZZrd0Zawv_huhEVuiuY5KB2SZ0_0Ultq82hp6-duhDc&s=10",
-  "https://i.pinimg.com/236x/ed/1e/76/ed1e760d44aafe7ac6e1a46550396fd8.jpg",
-  "https://img.freepik.com/premium-photo/full-frame-shot-wall_1048944-7864244.jpg?semt=ais_hybrid&w=740&q=80",
-"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS2l_lp6L67FphEaMd-UH8c-yqLz2v6dyKTDuLXWdrwwlbXQ3Sw7hBtHdc&s=10"
-];
-
-function resizeCanvas(){
-  canvas.width=Math.min(innerWidth-20,900);
-  canvas.height=700;
-  draw();
-}
-window.onresize=resizeCanvas;
-
-function metallic(type,w){
-  const g=ctx.createLinearGradient(0,0,w,0);
-  if(type==="gold"){g.addColorStop(0,"#7a5c00");g.addColorStop(.5,"#fff3b0");g.addColorStop(1,"#7a5c00");}
-  if(type==="silver"){g.addColorStop(0,"#777");g.addColorStop(.5,"#fff");g.addColorStop(1,"#777");}
-  if(type==="rosegold"){g.addColorStop(0,"#8b5a5a");g.addColorStop(.5,"#f3c1c1");g.addColorStop(1,"#8b5a5a");}
-  return g;
+    iframe.style.display = "block";      
+    slide.querySelector('.shorts-thumbnail').style.display = "none";      
+    player.playVideo();      
+  });      
 }
 
-function setCanvasBgImage(src){
-  const img = new Image();
-  img.onload = () => {
-    canvasBgImage = img;
-    draw();
-  };
-  img.src = src;
+}
+});
+
+});
 }
 
-function draw(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.fillStyle = canvasBg;
-ctx.fillRect(0,0,canvas.width,canvas.height);
+// autoplay most visible on scroll
+document.querySelector('.shorts-carousel-horizontal')
+.addEventListener('scroll', () => {
+const slides = document.querySelectorAll('.shorts-slide');
+let maxVisible = 0;
+let activeIndex = -1;
 
-if(canvasBgImage){
-  ctx.drawImage(
-    canvasBgImage,
-    0, 0,
-    canvas.width,
-    canvas.height
-  );
+slides.forEach((slide, index) => {
+const rect = slide.getBoundingClientRect();
+const visible = Math.min(rect.right, window.innerWidth) -
+Math.max(rect.left, 0);
+
+if (visible > maxVisible) {
+maxVisible = visible;
+activeIndex = index;
 }
-  objects.forEach(o=>{
-    ctx.save();
-    ctx.translate(o.x+o.w/2,o.y+o.h/2);
-    ctx.rotate(o.rotation);
-    ctx.translate(-o.w/2,-o.h/2);
+});
 
-    if(o.type==="shape"){
-      ctx.fillStyle=["gold","silver","rosegold"].includes(o.color)?metallic(o.color,o.w):o.color;
-      drawShape(o);
-    }
+if (activeIndex >= 0) {
+players.forEach((p, i) => {
+const iframe = slides[i].querySelector('iframe');
+const thumb = slides[i].querySelector('.shorts-thumbnail');
 
-    if(o.type==="text"){
-      ctx.font=`${o.size}px ${o.font}`;
-      ctx.textBaseline="top";
-      o.w=ctx.measureText(o.text).width;
-      o.h=o.size;
-      ctx.fillStyle=["gold","silver","rosegold"].includes(o.color)?metallic(o.color,o.w):o.color;
-      ctx.fillText(o.text,0,0);
-    }
-
-    if(o.type==="vector"){
-      ctx.fillStyle=["gold","silver","rosegold"].includes(o.color)?metallic(o.color,o.w):o.color;
-      ctx.save();
-      ctx.scale(o.w/200,o.h/200);
-      ctx.fill(new Path2D(o.path));
-      ctx.restore();
-    }
-
-    if(o===selected) drawHandles(o);
-    ctx.restore();
-  });
+if (i === activeIndex) {      
+  iframe.style.display = "block";      
+  thumb.style.display = "none";      
+  p.playVideo();      
+} else {      
+  p.pauseVideo();      
+  iframe.style.display = "none";      
+  thumb.style.display = "flex";      
 }
 
-function drawShape(o){
-  ctx.beginPath();
-
-  if(o.shape==="rect") ctx.rect(0,0,o.w,o.h);
-  else if(o.shape==="rounded") roundRect(0,0,o.w,o.h,20);
-  else if(o.shape==="circle") ctx.arc(o.w/2,o.h/2,o.w/2,0,Math.PI*2);
-  else if(o.shape==="oval") ctx.ellipse(o.w/2,o.h/2,o.w/2,o.h/2,0,0,Math.PI*2);
-  else if(o.shape==="pill") roundRect(0,0,o.w,o.h,o.h/2);
-
-  /* CUSTOM SVG SHAPES */
-  else if(VECTOR_SHAPES[o.shape]){
-    ctx.save();
-    ctx.scale(o.w/200, o.h/200);
-    ctx.fill(new Path2D(VECTOR_SHAPES[o.shape]));
-    ctx.restore();
-    return;
-  }
-
-  ctx.fill();
+});
 }
 
+}, { passive:true });
+</script>  </body>
 
-function roundRect(x,y,w,h,r){
-  ctx.moveTo(x+r,y);
-  ctx.arcTo(x+w,y,x+w,y+h,r);
-  ctx.arcTo(x+w,y+h,x,y+h,r);
-  ctx.arcTo(x,y+h,x,y,r);
-  ctx.arcTo(x,y,x+w,y,r);
-}
-
-function drawIcon(x,y,t){
-  ctx.beginPath();
-  ctx.arc(x,y,14,0,Math.PI*2);
-  ctx.fillStyle="#fff";ctx.fill();ctx.stroke();
-  ctx.fillStyle="#000";ctx.font="16px Poppins";
-  ctx.fillText(t,x-6,y+6);
-}
-
-function updateSizeSlider(){
-  const slider = document.getElementById("sizeSlider");
-
-  if(!selected){
-    slider.style.display = "none";
-    return;
-  }
-
-  slider.style.display = "block";
-  slider.value = selected.w;
-}
-document.getElementById("sizeSlider").oninput = function(){
-  if(!selected || selected.locked) return;
-
-  const newW = Number(this.value);
-  const ratio = selected.h / selected.w;
-
-  selected.w = newW;
-  selected.h = newW * ratio;
-
-  if(selected.type === "text"){
-    selected.size = newW * 0.3; // text scaling logic
-  }
-
-  draw();
-};
-
-function drawHandles(o){
-  ctx.strokeStyle=o.locked?"#999":"#1e90ff";
-  ctx.strokeRect(0,0,o.w,o.h);
-  if(o.locked){drawIcon(o.w/2,-22,"🔒");return;}
-  drawIcon(-18,-18,"×");
-  drawIcon(o.w+18,-18,"↻");
-  drawIcon(o.w+18,o.h+18,"↔");
-}
-
-function getPos(e){
-  const r=canvas.getBoundingClientRect();
-  const t=e.touches?e.touches[0]:e;
-  return{x:(t.clientX-r.left)*(canvas.width/r.width),y:(t.clientY-r.top)*(canvas.height/r.height)};
-}
-
-
-canvas.onmousedown=canvas.ontouchstart=e=>{
-  saveState();e.preventDefault();
-  const p=getPos(e);
-  selected=null;mode=null;
-
-  for(let i=objects.length-1;i>=0;i--){
-    const o=objects[i];
-    const cx=o.x+o.w/2,cy=o.y+o.h/2;
-    const dx=p.x-cx,dy=p.y-cy;
-    const cos=Math.cos(-o.rotation),sin=Math.sin(-o.rotation);
-    const rx=cos*dx-sin*dy+o.w/2;
-    const ry=sin*dx+cos*dy+o.h/2;
-
-    if(!o.locked&&Math.hypot(rx+18,ry+18)<14){objects.splice(i,1);draw();return;}
-    if(!o.locked&&Math.hypot(rx-(o.w+18),ry+18)<14){selected=o;mode="rotate";startAngle=Math.atan2(p.y-cy,p.x-cx)-o.rotation;break;}
-    if(!o.locked&&Math.hypot(rx-(o.w+18),ry-(o.h+18))<14){selected=o;mode="resize";sx=p.x;sy=p.y;break;}
-
-if(o.type==="text" && !o.locked){
-  const now = Date.now();
-  if(now - lastTapTime < 350){
-    const nt = prompt("Edit Text", o.text);
-    if(nt !== null){
-      o.text = nt;
-      draw();
-    }
-    return;
-  }
-  lastTapTime = now;
-}
-
-if(rx>0&&rx<o.w&&ry>0&&ry<o.h)
-
-{selected=o;if(!o.locked){mode="move";sx=p.x;sy=p.y;}break;}
-  }
-
-  colorBtn.style.display = selected ? "block" : "none";
-updateSizeSlider();
-  draw();
-};
-
-canvas.onmousemove=canvas.ontouchmove=e=>{
-  if(!selected||!mode||selected.locked)return;
-  e.preventDefault();
-  const p=getPos(e);
-
-  if(mode==="move"){selected.x+=p.x-sx;selected.y+=p.y-sy;}
-  if(mode==="resize"){
-    selected.w+=p.x-sx;
-    selected.h+=p.y-sy;
-    if(selected.type==="text") selected.size+=(p.y-sy)*0.5;
-  }
-  if(mode==="rotate"){
-    const cx=selected.x+selected.w/2,cy=selected.y+selected.h/2;
-    selected.rotation=Math.atan2(p.y-cy,p.x-cx)-startAngle;
-  }
-  sx=p.x;sy=p.y;draw();
-};
-
-canvas.onmouseup=canvas.ontouchend=()=>mode=null;
-
-function saveState(){history.push(JSON.stringify({objects,canvasBg}));redoStack=[];}
-function undo(){if(!history.length)return;redoStack.push(JSON.stringify({objects,canvasBg}));const s=JSON.parse(history.pop());objects=s.objects;canvasBg=s.canvasBg;selected=null;draw();}
-function redo(){if(!redoStack.length)return;history.push(JSON.stringify({objects,canvasBg}));const s=JSON.parse(redoStack.pop());objects=s.objects;canvasBg=s.canvasBg;selected=null;draw();}
-
-function addShape(s){
-  saveState();
-  if(!s)return;
-  const w=canvas.width*0.6;
-  selected={type:"shape",shape:s,x:(canvas.width-w)/2,y:(canvas.height-w*0.6)/2,w:w,h:w*0.6,rotation:0,color:"#000",locked:false};
-  objects.push(selected);draw();
-}
-
-function addVector(kind,key){
-  if(!key) return;
-  saveState();
-  const path=kind==="logo"?VECTOR_LOGOS[key]:VECTOR_BORDERS[key];
-  const size=kind==="border"?canvas.width*0.8:canvas.width*0.25;
-  selected={type:"vector",path,x:(canvas.width-size)/2,y:(canvas.height-size)/2,w:size,h:size,rotation:0,color:"gold",locked:false};
-  objects.push(selected);draw();
-}
-
-function addText(){
-  saveState();
-  const t=prompt("Text","Your Name");
-  if(!t)return;
-  selected={type:"text",text:t,font:"Cinzel Decorative",size:canvas.width*0.08,x:100,y:100,rotation:0,color:"gold",locked:false};
-  objects.push(selected);draw();
-}
-
-function changeFont(f){if(selected&&selected.type==="text"){selected.font=f;draw();}}
-function toggleLock(){if(selected){selected.locked=!selected.locked;draw();}}
-
-function toggleColors(){
-  const c=document.getElementById("colors");
-  c.innerHTML="";
-  ELEMENT_COLORS.forEach(col=>{
-    const d=document.createElement("div");
-    d.className="thumb";
-    if(col==="gold")d.style.background="linear-gradient(135deg,#7a5c00,#fff3b0,#7a5c00)";
-    else if(col==="silver")d.style.background="linear-gradient(135deg,#777,#fff,#777)";
-    else if(col==="rosegold")d.style.background="linear-gradient(135deg,#8b5a5a,#f3c1c1,#8b5a5a)";
-    else d.style.background=col;
-    d.onclick=()=>{selected.color=col;c.style.display="none";draw();}
-    c.appendChild(d);
-  });
-  c.style.display=c.style.display==="block"?"none":"block";
-}
-
-function toggleCanvasPalette(){
-  const p=document.getElementById("canvasPalette");
-  p.innerHTML="";
-
-  /* SOLID COLORS */
-  CANVAS_BACKGROUNDS.forEach(c=>{
-    const d=document.createElement("div");
-    d.className="thumb";
-    d.style.background=c;
-    d.onclick=()=>{
-      canvasBg=c;
-      canvasBgImage=null;   // remove image if any
-      p.style.display="none";
-      draw();
-    };
-    p.appendChild(d);
-  });
-
-  /* IMAGE BACKGROUNDS */
-  CANVAS_BG_IMAGES.forEach(src=>{
-    const d=document.createElement("div");
-    d.className="thumb";
-    d.style.backgroundImage=`url(${src})`;
-    d.style.backgroundSize="cover";
-    d.style.backgroundPosition="center";
-    d.onclick=()=>{
-      setCanvasBgImage(src);
-      p.style.display="none";
-    };
-    p.appendChild(d);
-  });
-
-  p.style.display=p.style.display==="block"?"none":"block";
-}
-
-function saveImage(){
-  const a=document.createElement("a");
-  a.download="design.jpg";
-  a.href=canvas.toDataURL("image/jpeg",1);
-  a.click();
-}
-
-resizeCanvas();
-draw();
-colorBtn.style.display = "none";
-document.getElementById("sizeSlider").style.display = "none";
-</script>
-
-</body>
-</html>
+</html>   
